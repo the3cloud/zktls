@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/listeners/ethereum", "crates/recordable-tls"]
+members = ["crates/listeners", "crates/recordable-tls"]
 
 [workspace.package]
 version = "0.1.0"
