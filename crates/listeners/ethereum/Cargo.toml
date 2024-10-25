@@ -1,0 +1,6 @@
+[package]
+name = "t3-zktls-listeners-ethereum"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
