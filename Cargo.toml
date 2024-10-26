@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = [ "crates/contracts","crates/listeners", "crates/recordable-tls"]
+members = [ "crates/contracts", "crates/input-builder","crates/listeners", "crates/recordable-tls"]
 
 [workspace.package]
 version = "0.1.0"
