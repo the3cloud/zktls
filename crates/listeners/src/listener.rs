@@ -123,7 +123,7 @@ where
         Some(filter)
     }
 
-    async fn compute_call(&self, logs: &[Log]) -> Result<(String, Vec<Bytes>)> {
+    async fn compute_call(&self, logs: &[Log]) -> Result<(String, Bytes)> {
         let mut url = String::new();
         let mut data = Vec::new();
         let mut encrypted_key = Bytes::new();
@@ -140,20 +140,19 @@ where
                 let decoded = RequestTLSCallSegment::decode_log_data(log.data(), false)?;
 
                 if !decoded.is_encrypted {
-                    data.push(decoded.data);
+                    data.extend_from_slice(&decoded.data);
                 } else {
                     let mut dd = decoded.data;
 
                     self.decryptor
                         .decode_tls_data(&mut dd, &encrypted_key)
                         .await?;
-
-                    data.push(dd);
+                    data.extend_from_slice(&dd);
                 }
             }
         }
 
-        Ok((url, data))
+        Ok((url, Bytes::from(data)))
     }
 
     async fn tidy_logs_and_call(&mut self, logs: Vec<Log>) -> Result<()> {
@@ -172,7 +171,7 @@ where
 
             let (url, data) = self.compute_call(logs).await?;
 
-            self.handler.handle_request_tls_call(&url, &data).await?;
+            self.handler.handle_request_tls_call(&url, data).await?;
         }
 
         Ok(())
@@ -201,7 +200,7 @@ mod tests {
         init_test_logger();
 
         let config = Config {
-            gateway_address: Address::from_str("0x70e0bA845a1A0F2DA3359C97E0285013525FFC49")
+            gateway_address: Address::from_str("0x0E801D84Fa97b50751Dbf25036d067dCf18858bF")
                 .unwrap(),
             begin_block_number: 0,
             block_number_batch_size: 100,

@@ -6,13 +6,15 @@ pub trait HandleRequestTLSCall {
     fn handle_request_tls_call(
         &mut self,
         url: &str,
-        data: &[Bytes],
+        data: Bytes,
     ) -> impl Future<Output = Result<()>> + Send;
 }
 
 impl HandleRequestTLSCall for () {
-    async fn handle_request_tls_call(&mut self, _url: &str, _data: &[Bytes]) -> Result<()> {
-        log::trace!("url: {}, data: {:?}", _url, _data);
+    async fn handle_request_tls_call(&mut self, _url: &str, _data: Bytes) -> Result<()> {
+        let data_str = String::from_utf8(_data.to_vec()).unwrap();
+
+        log::trace!("url: {}, data: {:?}", _url, data_str);
 
         Ok(())
     }
