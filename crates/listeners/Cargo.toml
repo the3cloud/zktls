@@ -7,5 +7,10 @@ edition.workspace = true
 alloy = { workspace = true, features = ["rpc", "rpc-types"] }
 anyhow.workspace = true
 log.workspace = true
+env_logger.workspace = true
 
 t3-zktls-contracts-ethereum.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full"] }
+alloy = { workspace = true, features = ["providers", "reqwest"] }

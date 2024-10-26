@@ -1,17 +1,19 @@
 use std::{collections::HashMap, thread::sleep, time::Duration};
 
 use alloy::{
+    network::Network,
     primitives::{Address, Bytes, B256},
     providers::Provider,
     rpc::types::{Filter, Log},
     sol_types::SolEvent,
+    transports::Transport,
 };
 use anyhow::Result;
 use t3_zktls_contracts_ethereum::ZkTLSGateway::{RequestTLSCallBegin, RequestTLSCallSegment};
 
 use crate::{Config, DecodeTLSData, HandleRequestTLSCall};
 
-pub struct Listener<P, H, D> {
+pub struct Listener<P, H, D, T, N> {
     provider: P,
     gateway_address: Address,
 
@@ -25,9 +27,11 @@ pub struct Listener<P, H, D> {
 
     handler: H,
     decryptor: D,
+
+    _marker: std::marker::PhantomData<(T, N)>,
 }
 
-impl<P: Provider, H: HandleRequestTLSCall, D: DecodeTLSData> Listener<P, H, D> {
+impl<P, H, D, T, N> Listener<P, H, D, T, N> {
     pub fn new(
         loop_number: Option<u64>,
         config: Config,
@@ -45,9 +49,19 @@ impl<P: Provider, H: HandleRequestTLSCall, D: DecodeTLSData> Listener<P, H, D> {
             loop_number,
             handler,
             decryptor,
+            _marker: std::marker::PhantomData,
         }
     }
+}
 
+impl<P, H, D, T, N> Listener<P, H, D, T, N>
+where
+    P: Provider<T, N>,
+    T: Transport + Clone,
+    N: Network,
+    H: HandleRequestTLSCall,
+    D: DecodeTLSData,
+{
     async fn pull_block(&mut self) -> Result<()> {
         let latest_block_number = self.provider.get_block_number().await?;
         let filter = self.compute_log_filter(latest_block_number);
@@ -55,24 +69,37 @@ impl<P: Provider, H: HandleRequestTLSCall, D: DecodeTLSData> Listener<P, H, D> {
 
         self.tidy_logs_and_call(logs).await?;
 
-        if let Some(loop_number) = &mut self.loop_number {
-            *loop_number -= 1;
-        }
-
         Ok(())
     }
 
     pub async fn pull_blocks(&mut self) -> Result<()> {
-        while self.loop_number.is_some() {
-            self.pull_block().await?;
+        if let Some(loop_number) = &mut self.loop_number {
+            for i in 0..*loop_number {
+                log::info!(
+                    "pulling block, loop number: {:?}, from block number: {} to block number: {}",
+                    i,
+                    self.begin_block_number,
+                    self.end_block_number
+                );
 
-            sleep(self.sleep_duration);
-        }
+                self.pull_block().await?;
 
-        loop {
-            self.pull_block().await?;
+                sleep(self.sleep_duration);
+            }
 
-            sleep(self.sleep_duration);
+            Ok(())
+        } else {
+            loop {
+                log::debug!(
+                    "pulling block, from block number: {} to block number: {}",
+                    self.begin_block_number,
+                    self.end_block_number
+                );
+
+                self.pull_block().await?;
+
+                sleep(self.sleep_duration);
+            }
         }
     }
 
@@ -149,5 +176,43 @@ impl<P: Provider, H: HandleRequestTLSCall, D: DecodeTLSData> Listener<P, H, D> {
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use alloy::{
+        network::Ethereum,
+        primitives::Address,
+        providers::{ReqwestProvider, RootProvider},
+        transports::http::reqwest::Url,
+    };
+
+    use crate::{Config, Listener};
+
+    fn init_test_logger() {
+        let _ = env_logger::builder().is_test(true).try_init();
+    }
+
+    #[tokio::test]
+    async fn test_init_test_logger() {
+        init_test_logger();
+
+        let config = Config {
+            gateway_address: Address::from_str("0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512")
+                .unwrap(),
+            begin_block_number: 0,
+            block_number_batch_size: 100,
+            sleep_duration: 1,
+        };
+
+        let provider: RootProvider<_, Ethereum> =
+            ReqwestProvider::new_http(Url::parse("http://localhost:8545").unwrap());
+
+        let mut listener = Listener::new(Some(3), config, provider, (), ());
+
+        listener.pull_blocks().await.unwrap();
     }
 }

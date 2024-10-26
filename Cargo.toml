@@ -10,6 +10,7 @@ edition = "2021"
 once_cell = "1.19.0"
 anyhow = "1.0.91"
 log = "0.4.22"
+env_logger = "0.11.5"
 
 rand_core = "0.6.4"
 rustls = { version = "0.23.13", default-features = false, features = ["std"] }
@@ -18,3 +19,5 @@ rustls-rustcrypto = { git = "https://github.com/the3cloud/rustls-rustcrypto.git"
 alloy = "0.5.4"
 
 t3-zktls-contracts-ethereum = { path = "crates/contracts", version = "0.1.0" }
+
+tokio = "1.41.0"
