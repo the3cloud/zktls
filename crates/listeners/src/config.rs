@@ -1,4 +1,4 @@
-use alloy::primitives::Address;
+use alloy::primitives::{Address, B256};
 
 /// Configuration for the ZkTLS Gateway listener
 pub struct Config {
@@ -10,4 +10,6 @@ pub struct Config {
     pub block_number_batch_size: u64,
     /// The duration to sleep between each polling cycle (in seconds)
     pub sleep_duration: u64,
+    /// The prover id to filter by
+    pub prover_id: B256,
 }

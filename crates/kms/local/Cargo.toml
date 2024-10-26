@@ -1,0 +1,12 @@
+[package]
+name = "t3-zktls-kms-local"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+t3-zktls-listeners-ethereum.workspace = true
+
+k256.workspace = true
+
+alloy.workspace = true
+anyhow.workspace = true

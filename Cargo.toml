@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = [ "crates/contracts", "crates/input-builder","crates/listeners", "crates/recordable-tls"]
+members = [ "crates/contracts", "crates/input-builder", "crates/kms/local","crates/listeners", "crates/recordable-tls"]
 
 [workspace.package]
 version = "0.1.0"
@@ -19,5 +19,11 @@ rustls-rustcrypto = { git = "https://github.com/the3cloud/rustls-rustcrypto.git"
 alloy = "0.5.4"
 
 t3-zktls-contracts-ethereum = { path = "crates/contracts", version = "0.1.0" }
+t3-zktls-kms-local = { path = "crates/kms/local", version = "0.1.0" }
+t3-zktls-input-builder = { path = "crates/input-builder", version = "0.1.0" }
+t3-zktls-listeners-ethereum = { path = "crates/listeners", version = "0.1.0" }
+t3-zktls-recordable-tls = { path = "crates/recordable-tls", version = "0.1.0" }
 
 tokio = "1.41.0"
+
+k256 = "0.13.4"

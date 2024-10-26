@@ -3,7 +3,7 @@ use anyhow::Result;
 use std::future::Future;
 
 /// Trait for handling TLS call requests
-pub trait HandleRequestTLSCall {
+pub trait RequestTLSCallHandler {
     /// Handles a TLS call request
     ///
     /// # Arguments
@@ -23,8 +23,8 @@ pub trait HandleRequestTLSCall {
     ) -> impl Future<Output = Result<()>> + Send;
 }
 
-/// Default implementation for HandleRequestTLSCall
-impl HandleRequestTLSCall for () {
+/// Default implementation for RequestTLSCallHandler
+impl RequestTLSCallHandler for () {
     async fn handle_request_tls_call(
         &mut self,
         _url: &str,
@@ -40,7 +40,7 @@ impl HandleRequestTLSCall for () {
 }
 
 /// Trait for decoding TLS data
-pub trait DecodeTLSData {
+pub trait TLSDataDecoder {
     /// Decodes TLS data
     ///
     /// # Arguments
@@ -58,8 +58,8 @@ pub trait DecodeTLSData {
     ) -> impl Future<Output = Result<()>> + Send;
 }
 
-/// Default implementation for DecodeTLSData
-impl DecodeTLSData for () {
+/// Default implementation for TLSDataDecoder
+impl TLSDataDecoder for () {
     async fn decode_tls_data(&self, _data: &mut Bytes, _encrypted_key: &Bytes) -> Result<()> {
         log::trace!("data: {:?}, encrypted_key: {:?}", _data, _encrypted_key);
         Ok(())

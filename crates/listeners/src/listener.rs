@@ -15,12 +15,14 @@ use alloy::{
 use anyhow::Result;
 use t3_zktls_contracts_ethereum::ZkTLSGateway::{RequestTLSCallBegin, RequestTLSCallSegment};
 
-use crate::{Config, DecodeTLSData, HandleRequestTLSCall};
+use crate::{Config, RequestTLSCallHandler, TLSDataDecoder};
 
 /// The main Listener struct.
 pub struct Listener<P, H, D, T, N> {
     provider: P,
     gateway_address: Address,
+
+    prover_id: B256,
 
     begin_block_number: u64,
     block_number_batch_size: u64,
@@ -57,6 +59,7 @@ impl<P, H, D, T, N> Listener<P, H, D, T, N> {
             gateway_address: config.gateway_address,
             begin_block_number: config.begin_block_number,
             block_number_batch_size: config.block_number_batch_size,
+            prover_id: config.prover_id,
             sleep_duration: Duration::from_secs(config.sleep_duration),
             loop_number,
             handler,
@@ -71,8 +74,8 @@ where
     P: Provider<T, N>,
     T: Transport + Clone,
     N: Network,
-    H: HandleRequestTLSCall,
-    D: DecodeTLSData,
+    H: RequestTLSCallHandler,
+    D: TLSDataDecoder,
 {
     /// Pulls and processes a single block of events.
     async fn pull_block(&mut self) -> Result<()> {
@@ -154,7 +157,7 @@ where
     }
 
     /// Computes the call data from a set of logs.
-    async fn compute_call(&self, logs: &[Log]) -> Result<(String, Bytes, u64)> {
+    async fn compute_call(&self, logs: &[Log]) -> Result<Option<(String, Bytes, u64)>> {
         let mut url = String::new();
         let mut data = Vec::new();
         let mut encrypted_key = Bytes::new();
@@ -164,9 +167,12 @@ where
             if log.topic0().ok_or(anyhow::anyhow!("log topic is empty"))?
                 == &RequestTLSCallBegin::SIGNATURE_HASH
             {
-                // TODO: filter by prover id.
-
                 let decoded = RequestTLSCallBegin::decode_log_data(log.data(), false)?;
+
+                if decoded.prover != self.prover_id {
+                    return Ok(None);
+                }
+
                 url = decoded.url;
                 encrypted_key = decoded.encrypted_key;
             } else if log.topic0().ok_or(anyhow::anyhow!("log topic is empty"))?
@@ -187,7 +193,7 @@ where
             }
         }
 
-        Ok((url, Bytes::from(data), max_cycle_num))
+        Ok(Some((url, Bytes::from(data), max_cycle_num)))
     }
 
     /// Processes the logs and calls the handler for each TLS call request.
@@ -205,11 +211,21 @@ where
         for logs in grouped_logs.values_mut() {
             logs.sort_by_key(|log| log.log_index);
 
-            let (url, data, max_cycle_num) = self.compute_call(logs).await?;
+            let call_result = self.compute_call(logs).await;
 
-            self.handler
-                .handle_request_tls_call(&url, data, max_cycle_num)
-                .await?;
+            match call_result {
+                Ok(None) => {
+                    log::debug!("mismatch call");
+                }
+                Ok(Some((url, data, max_cycle_num))) => {
+                    self.handler
+                        .handle_request_tls_call(&url, data, max_cycle_num)
+                        .await?;
+                }
+                Err(e) => {
+                    log::error!("failed to compute call: {:?}", e);
+                }
+            }
         }
 
         Ok(())
@@ -222,7 +238,7 @@ mod tests {
 
     use alloy::{
         network::Ethereum,
-        primitives::Address,
+        primitives::{Address, B256},
         providers::{ReqwestProvider, RootProvider},
         transports::http::reqwest::Url,
     };
@@ -244,6 +260,10 @@ mod tests {
                 .unwrap(),
             begin_block_number: 0,
             block_number_batch_size: 100,
+            prover_id: B256::from_str(
+                "0x0000000000000000000000000000000000000000000000000000000000000000",
+            )
+            .unwrap(),
             sleep_duration: 1,
         };
 
