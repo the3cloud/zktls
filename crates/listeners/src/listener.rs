@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, thread::sleep, time::Duration};
 
 use alloy::{
     primitives::{Address, Bytes, B256},
@@ -9,17 +9,19 @@ use alloy::{
 use anyhow::Result;
 use t3_zktls_contracts_ethereum::ZkTLSGateway::{RequestTLSCallBegin, RequestTLSCallSegment};
 
-use crate::{DecodeTLSData, HandleRequestTLSCall};
+use crate::{Config, DecodeTLSData, HandleRequestTLSCall};
 
 pub struct Listener<P, H, D> {
     provider: P,
     gateway_address: Address,
 
     begin_block_number: u64,
-
     end_block_number: u64,
-
     block_number_batch_size: u64,
+
+    sleep_duration: Duration,
+
+    loop_number: Option<u64>,
 
     handler: H,
     decryptor: D,
@@ -27,34 +29,51 @@ pub struct Listener<P, H, D> {
 
 impl<P: Provider, H: HandleRequestTLSCall, D: DecodeTLSData> Listener<P, H, D> {
     pub fn new(
+        loop_number: Option<u64>,
+        config: Config,
         provider: P,
-        gateway_address: Address,
-        begin_block_number: u64,
-        block_number_batch_size: u64,
         handler: H,
         decryptor: D,
     ) -> Self {
         Self {
             provider,
-            gateway_address,
-            begin_block_number,
-            block_number_batch_size,
-            end_block_number: begin_block_number,
+            gateway_address: config.gateway_address,
+            begin_block_number: config.begin_block_number,
+            block_number_batch_size: config.block_number_batch_size,
+            end_block_number: config.begin_block_number,
+            sleep_duration: Duration::from_secs(config.sleep_duration),
+            loop_number,
             handler,
             decryptor,
         }
     }
 
-    pub async fn pull_blocks(&mut self) -> Result<()> {
+    async fn pull_block(&mut self) -> Result<()> {
         let latest_block_number = self.provider.get_block_number().await?;
-
         let filter = self.compute_log_filter(latest_block_number);
-
         let logs = self.provider.get_logs(&filter).await?;
 
         self.tidy_logs_and_call(logs).await?;
 
+        if let Some(loop_number) = &mut self.loop_number {
+            *loop_number -= 1;
+        }
+
         Ok(())
+    }
+
+    pub async fn pull_blocks(&mut self) -> Result<()> {
+        while self.loop_number.is_some() {
+            self.pull_block().await?;
+
+            sleep(self.sleep_duration);
+        }
+
+        loop {
+            self.pull_block().await?;
+
+            sleep(self.sleep_duration);
+        }
     }
 
     pub fn compute_log_filter(&mut self, latest_block_number: u64) -> Filter {

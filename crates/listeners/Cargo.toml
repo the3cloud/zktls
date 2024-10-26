@@ -6,5 +6,6 @@ edition.workspace = true
 [dependencies]
 alloy = { workspace = true, features = ["rpc", "rpc-types"] }
 anyhow.workspace = true
+log.workspace = true
 
 t3-zktls-contracts-ethereum.workspace = true
