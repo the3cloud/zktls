@@ -6,8 +6,8 @@ contract ZkTLSGateway {
 
     event RequestTLSCallSegment(bytes data, bytes encrypted_key);
 
-    function requestTLSCall(bytes32 prover, string calldata url, bytes[] calldata data) public {
-        emit RequestTLSCallBegin(prover, url);
+    function requestTLSCall(string calldata url, bytes[] calldata data) public {
+        emit RequestTLSCallBegin(0x0, url);
 
         for (uint256 i = 0; i < data.length; i++) {
             emit RequestTLSCallSegment(data[i], "");

@@ -18,7 +18,6 @@ pub struct Listener<P, H, D, T, N> {
     gateway_address: Address,
 
     begin_block_number: u64,
-    end_block_number: u64,
     block_number_batch_size: u64,
 
     sleep_duration: Duration,
@@ -44,7 +43,6 @@ impl<P, H, D, T, N> Listener<P, H, D, T, N> {
             gateway_address: config.gateway_address,
             begin_block_number: config.begin_block_number,
             block_number_batch_size: config.block_number_batch_size,
-            end_block_number: config.begin_block_number,
             sleep_duration: Duration::from_secs(config.sleep_duration),
             loop_number,
             handler,
@@ -65,23 +63,18 @@ where
     async fn pull_block(&mut self) -> Result<()> {
         let latest_block_number = self.provider.get_block_number().await?;
         let filter = self.compute_log_filter(latest_block_number);
-        let logs = self.provider.get_logs(&filter).await?;
 
-        self.tidy_logs_and_call(logs).await?;
+        if let Some(filter) = filter {
+            let logs = self.provider.get_logs(&filter).await?;
 
+            self.tidy_logs_and_call(logs).await?;
+        }
         Ok(())
     }
 
     pub async fn pull_blocks(&mut self) -> Result<()> {
         if let Some(loop_number) = &mut self.loop_number {
-            for i in 0..*loop_number {
-                log::info!(
-                    "pulling block, loop number: {:?}, from block number: {} to block number: {}",
-                    i,
-                    self.begin_block_number,
-                    self.end_block_number
-                );
-
+            for _ in 0..*loop_number {
                 self.pull_block().await?;
 
                 sleep(self.sleep_duration);
@@ -90,12 +83,6 @@ where
             Ok(())
         } else {
             loop {
-                log::debug!(
-                    "pulling block, from block number: {} to block number: {}",
-                    self.begin_block_number,
-                    self.end_block_number
-                );
-
                 self.pull_block().await?;
 
                 sleep(self.sleep_duration);
@@ -103,26 +90,37 @@ where
         }
     }
 
-    pub fn compute_log_filter(&mut self, latest_block_number: u64) -> Filter {
-        let to_block_number =
-            if latest_block_number < self.begin_block_number + self.block_number_batch_size {
-                latest_block_number
-            } else {
-                self.begin_block_number + self.block_number_batch_size
-            };
+    pub fn compute_log_filter(&mut self, latest_block_number: u64) -> Option<Filter> {
+        let to_block_number = if latest_block_number < self.begin_block_number {
+            return None;
+        } else if latest_block_number < self.begin_block_number + self.block_number_batch_size {
+            latest_block_number
+        } else {
+            self.begin_block_number + self.block_number_batch_size
+        };
 
-        self.end_block_number = to_block_number;
+        let begin_block_number = self.begin_block_number;
 
         let topics = vec![
             RequestTLSCallBegin::SIGNATURE_HASH,
             RequestTLSCallSegment::SIGNATURE_HASH,
         ];
 
-        Filter::new()
-            .from_block(self.begin_block_number)
+        let filter = Filter::new()
+            .from_block(begin_block_number)
             .to_block(to_block_number)
             .address(self.gateway_address)
-            .event_signature(topics)
+            .event_signature(topics);
+
+        log::info!(
+            "pulling block, from block number: {} to block number: {}",
+            begin_block_number,
+            to_block_number
+        );
+
+        self.begin_block_number = to_block_number + 1;
+
+        Some(filter)
     }
 
     async fn compute_call(&self, logs: &[Log]) -> Result<(String, Vec<Bytes>)> {
@@ -201,17 +199,17 @@ mod tests {
         init_test_logger();
 
         let config = Config {
-            gateway_address: Address::from_str("0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512")
+            gateway_address: Address::from_str("0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1")
                 .unwrap(),
             begin_block_number: 0,
-            block_number_batch_size: 100,
+            block_number_batch_size: 3,
             sleep_duration: 1,
         };
 
         let provider: RootProvider<_, Ethereum> =
             ReqwestProvider::new_http(Url::parse("http://localhost:8545").unwrap());
 
-        let mut listener = Listener::new(Some(3), config, provider, (), ());
+        let mut listener = Listener::new(Some(10), config, provider, (), ());
 
         listener.pull_blocks().await.unwrap();
     }

@@ -12,6 +12,8 @@ pub trait HandleRequestTLSCall {
 
 impl HandleRequestTLSCall for () {
     async fn handle_request_tls_call(&mut self, _url: &str, _data: &[Bytes]) -> Result<()> {
+        log::debug!("url: {}, data: {:?}", _url, _data);
+
         Ok(())
     }
 }
