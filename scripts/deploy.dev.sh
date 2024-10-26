@@ -10,9 +10,10 @@ forge script script/Deploy.s.sol:DeployScript --rpc-url $RPC_URL --broadcast --p
 ZKTLSGATEWAY_ADDRESS=$(cat broadcast/Deploy.s.sol/31337/run-latest.json | jq -r ".transactions[0].contractAddress")
 echo "ZkTLSGateway deployed at: $ZKTLSGATEWAY_ADDRESS"
 
-cast send $ZKTLSGATEWAY_ADDRESS "requestTLSCall(string,bytes[])" \
+cast send $ZKTLSGATEWAY_ADDRESS "requestTLSCall(string,bytes,bytes[])" \
     "https://example.com" \
-    "[0x00,0x01,0x02]" \
+    "0xffff" \
+    "[0x00ac,0x0123,0x02cbdf11]" \
     --rpc-url $RPC_URL --private-key $PRIVATE_KEY
 
 rm -rf broadcast/ cache/

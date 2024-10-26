@@ -126,24 +126,26 @@ where
     async fn compute_call(&self, logs: &[Log]) -> Result<(String, Vec<Bytes>)> {
         let mut url = String::new();
         let mut data = Vec::new();
+        let mut encrypted_key = Bytes::new();
         for log in logs {
             if log.topic0().ok_or(anyhow::anyhow!("log topic is empty"))?
                 == &RequestTLSCallBegin::SIGNATURE_HASH
             {
                 let decoded = RequestTLSCallBegin::decode_log_data(log.data(), false)?;
                 url = decoded.url;
+                encrypted_key = decoded.encrypted_key;
             } else if log.topic0().ok_or(anyhow::anyhow!("log topic is empty"))?
                 == &RequestTLSCallSegment::SIGNATURE_HASH
             {
                 let decoded = RequestTLSCallSegment::decode_log_data(log.data(), false)?;
 
-                if decoded.encrypted_key.is_empty() {
+                if !decoded.is_encrypted {
                     data.push(decoded.data);
                 } else {
                     let mut dd = decoded.data;
 
                     self.decryptor
-                        .decode_tls_data(&mut dd, &decoded.encrypted_key)
+                        .decode_tls_data(&mut dd, &encrypted_key)
                         .await?;
 
                     data.push(dd);
@@ -199,17 +201,17 @@ mod tests {
         init_test_logger();
 
         let config = Config {
-            gateway_address: Address::from_str("0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1")
+            gateway_address: Address::from_str("0x70e0bA845a1A0F2DA3359C97E0285013525FFC49")
                 .unwrap(),
             begin_block_number: 0,
-            block_number_batch_size: 3,
+            block_number_batch_size: 100,
             sleep_duration: 1,
         };
 
         let provider: RootProvider<_, Ethereum> =
             ReqwestProvider::new_http(Url::parse("http://localhost:8545").unwrap());
 
-        let mut listener = Listener::new(Some(10), config, provider, (), ());
+        let mut listener = Listener::new(Some(3), config, provider, (), ());
 
         listener.pull_blocks().await.unwrap();
     }

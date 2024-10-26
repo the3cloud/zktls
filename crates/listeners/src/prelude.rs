@@ -12,7 +12,7 @@ pub trait HandleRequestTLSCall {
 
 impl HandleRequestTLSCall for () {
     async fn handle_request_tls_call(&mut self, _url: &str, _data: &[Bytes]) -> Result<()> {
-        log::debug!("url: {}, data: {:?}", _url, _data);
+        log::trace!("url: {}, data: {:?}", _url, _data);
 
         Ok(())
     }
@@ -28,6 +28,7 @@ pub trait DecodeTLSData {
 
 impl DecodeTLSData for () {
     async fn decode_tls_data(&self, _data: &mut Bytes, _encrypted_key: &Bytes) -> Result<()> {
+        log::trace!("data: {:?}, encrypted_key: {:?}", _data, _encrypted_key);
         Ok(())
     }
 }
