@@ -1,8 +1,7 @@
 use alloy::sol;
 
-sol! {
+sol!(
     #[sol(rpc)]
-    contract ZkTLSGateway {
-        event RequestTLSCall(bytes data);
-    }
-}
+    ZkTLSGateway,
+    "../../target/contracts/ZkTLSGateway.sol/ZkTLSGateway.json"
+);
