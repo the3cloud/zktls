@@ -199,6 +199,8 @@ mod tests {
     async fn test_init_test_logger() {
         init_test_logger();
 
+        // TODO: Use Anvil instance to test in process.
+
         let config = Config {
             gateway_address: Address::from_str("0x0E801D84Fa97b50751Dbf25036d067dCf18858bF")
                 .unwrap(),
