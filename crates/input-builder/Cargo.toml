@@ -1,0 +1,23 @@
+[package]
+name = "t3zktls-input-builder"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+alloy = { workspace = true }
+anyhow = { workspace = true }
+
+webpki-roots = { workspace = true }
+rustls = { workspace = true }
+rustls-rustcrypto = { workspace = true }
+
+t3zktls-core.workspace = true
+t3zktls-recordable-tls = { workspace = true }
+
+tempfile = { workspace = true }
+
+lru.workspace = true
+regex.workspace = true
+
+[dev-dependencies]
+ciborium = { workspace = true }

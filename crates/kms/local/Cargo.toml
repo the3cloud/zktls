@@ -1,0 +1,23 @@
+[package]
+name = "t3zktls-kms-local"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+t3zktls-listeners-ethereum.workspace = true
+t3zktls-core.workspace = true
+
+k256 = { workspace = true, features = ["ecdh"] }
+
+alloy.workspace = true
+anyhow.workspace = true
+log.workspace = true
+
+aes-gcm = { workspace = true, features = ["aes", "alloc"]}
+
+[dev-dependencies]
+t3zktls-contracts-ethereum.workspace = true
+env_logger.workspace = true
+
+alloy = { workspace = true, features = ["providers", "reqwest", "node-bindings"] }
+tokio = { workspace = true, features = ["full"] }

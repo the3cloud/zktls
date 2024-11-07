@@ -1,0 +1,17 @@
+[package]
+name = "t3zktls-core"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+alloy = { workspace = true, features = ["serde"] }
+
+log = { workspace = true }
+
+anyhow = { workspace = true }
+hex = { workspace = true, optional = true }
+
+[features]
+default = ["template"]
+template = ["hex"]

@@ -1,0 +1,12 @@
+[package]
+name = "t3zktls-recordable-tls"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+once_cell.workspace = true
+hex.workspace = true
+
+rand_core.workspace = true
+rustls.workspace = true
+rustls-rustcrypto.workspace = true

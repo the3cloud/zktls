@@ -1,0 +1,14 @@
+[package]
+name = "t3zktls-replayable-tls"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+once_cell.workspace = true
+
+rustls.workspace = true
+rustls-rustcrypto.workspace = true
+webpki-roots.workspace = true
+rand_core.workspace = true
+bytes.workspace = true
+hex.workspace = true

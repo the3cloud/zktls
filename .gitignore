@@ -1,0 +1,7 @@
+**/target
+**/Cargo.lock
+
+**/.DS_Store
+
+# ignore elf now.
+**/elf

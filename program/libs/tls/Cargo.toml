@@ -1,0 +1,18 @@
+[package]
+name = "t3zktls-program-tls"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+t3zktls-core.workspace = true
+t3zktls-replayable-tls.workspace = true
+
+webpki-roots = { workspace = true }
+rustls = { workspace = true }
+rustls-rustcrypto = { workspace = true }
+
+ciborium = { workspace = true }
+
+sha2.workspace = true
+
+hex.workspace = true

@@ -1,0 +1,14 @@
+[package]
+name = "t3zktls-listeners-ethereum"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+alloy = { workspace = true, features = ["rpc", "rpc-types"] }
+anyhow.workspace = true
+log.workspace = true
+
+t3zktls-core.workspace = true
+t3zktls-contracts-ethereum.workspace = true
+
+[dev-dependencies]
