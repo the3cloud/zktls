@@ -6,3 +6,5 @@ edition.workspace = true
 [dependencies]
 anyhow = { workspace = true }
 t3zktls-core = { workspace = true }
+
+tokio = { workspace = true }
