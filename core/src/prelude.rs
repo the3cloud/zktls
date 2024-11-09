@@ -5,7 +5,7 @@ use std::future::Future;
 use crate::{GuestInput, GuestOutput, ProveRequest, ProveResponse};
 
 pub trait Listener {
-    fn pull(&mut self) -> impl Future<Output = Result<ProveRequest>> + Send;
+    fn pull(&mut self) -> impl Future<Output = Result<Vec<ProveRequest>>> + Send;
 }
 
 pub trait InputBuilder {
@@ -19,7 +19,7 @@ pub trait GuestProver {
     fn prove(
         &mut self,
         guest_input: GuestInput,
-    ) -> impl Future<Output = Result<GuestOutput>> + Send;
+    ) -> impl Future<Output = Result<(GuestOutput, Vec<u8>)>> + Send;
 }
 
 pub trait Submiter {

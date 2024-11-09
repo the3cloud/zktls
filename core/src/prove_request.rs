@@ -48,4 +48,6 @@ pub struct ProveResponse {
 
     pub response_data: Bytes,
     pub request_hash: B256,
+
+    pub proof: Bytes,
 }

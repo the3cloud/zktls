@@ -45,20 +45,24 @@ where
 {
     pub async fn run(&mut self) -> Result<()> {
         loop {
-            let request = self.listener.pull().await?;
+            let requests = self.listener.pull().await?;
 
-            let request_id = request.request_id;
+            for request in requests {
+                let request_id = request.request_id;
 
-            let input = self.input_builder.build_input(request).await?;
+                let input = self.input_builder.build_input(request).await?;
 
-            let output = self.guest_prover.prove(input).await?;
-            self.submitter
-                .submit(ProveResponse {
-                    request_id,
-                    response_data: output.response_data.into(),
-                    request_hash: output.request_hash.into(),
-                })
-                .await?;
+                let (output, proof) = self.guest_prover.prove(input).await?;
+
+                self.submitter
+                    .submit(ProveResponse {
+                        request_id,
+                        response_data: output.response_data.into(),
+                        request_hash: output.request_hash.into(),
+                        proof: proof.into(),
+                    })
+                    .await?;
+            }
 
             if let Some(loop_number) = self.config.loop_number {
                 if self.loop_number >= loop_number {

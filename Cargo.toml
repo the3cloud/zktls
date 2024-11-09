@@ -5,7 +5,7 @@ members = [
 
     "contracts",
     "crates/kms/local",
-    # "crates/listeners",
+    "crates/listeners",
     "crates/recordable-tls",
     # "crates/input-builder",
 
