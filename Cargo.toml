@@ -6,7 +6,7 @@ members = [
     "contracts",
     "crates/kms/local",
     # "crates/listeners",
-    # "crates/recordable-tls",
+    "crates/recordable-tls",
     # "crates/input-builder",
 
     "program/libs/tls",
