@@ -12,7 +12,7 @@ members = [
     "program/libs/tls",
     "program/libs/replayable-tls",
 
-    "program/guest",
+    "program/guest", "crates/prover",
 
     # "bins/input-generator",
     # "bins/bundler",
