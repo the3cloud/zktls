@@ -1,10 +1,10 @@
 mod guest;
 pub use guest::*;
 
-#[cfg(feature = "template")]
-mod template;
-#[cfg(feature = "template")]
-pub use template::*;
+// #[cfg(feature = "template")]
+// mod template;
+// #[cfg(feature = "template")]
+// pub use template::*;
 
 mod prove_request;
 pub use prove_request::*;

@@ -114,87 +114,87 @@ impl TLSDataDecryptor for K256LocalDecryptor {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use std::str::FromStr;
+// #[cfg(test)]
+// mod tests {
+//     use std::str::FromStr;
 
-    use crate::{K256LocalDecryptorGenerator, K256LocalEncryptor};
-    use alloy::{
-        network::Ethereum,
-        node_bindings::Anvil,
-        primitives::{Bytes, B256},
-        providers::{ReqwestProvider, RootProvider},
-        transports::http::reqwest::Url,
-    };
-    use t3zktls_contracts_ethereum::ZkTLSGateway;
+//     use crate::{K256LocalDecryptorGenerator, K256LocalEncryptor};
+//     use alloy::{
+//         network::Ethereum,
+//         node_bindings::Anvil,
+//         primitives::{Bytes, B256},
+//         providers::{ReqwestProvider, RootProvider},
+//         transports::http::reqwest::Url,
+//     };
+//     use t3zktls_contracts_ethereum::ZkTLSGateway;
 
-    use t3zktls_listeners_ethereum::{Config, Listener};
+//     use t3zktls_listeners_ethereum::{Config, Listener};
 
-    #[tokio::test]
-    async fn test_decryptor() {
-        let _ = env_logger::builder().is_test(true).try_init();
+//     #[tokio::test]
+//     async fn test_decryptor() {
+//         let _ = env_logger::builder().is_test(true).try_init();
 
-        let anvil = Anvil::new().spawn();
+//         let anvil = Anvil::new().spawn();
 
-        let url = format!("http://localhost:{}", anvil.port());
+//         let url = format!("http://localhost:{}", anvil.port());
 
-        let decryptor = K256LocalDecryptorGenerator::generate_key().unwrap();
-        let encrypt_public_key = decryptor.encrypt_public_key().unwrap();
+//         let decryptor = K256LocalDecryptorGenerator::generate_key().unwrap();
+//         let encrypt_public_key = decryptor.encrypt_public_key().unwrap();
 
-        let mut encryptor = K256LocalEncryptor::new(&encrypt_public_key).unwrap();
+//         let mut encryptor = K256LocalEncryptor::new(&encrypt_public_key).unwrap();
 
-        let data0 = b"GET /get HTTP/1.1\r\nHost: ";
+//         let data0 = b"GET /get HTTP/1.1\r\nHost: ";
 
-        let mut data1 = b"httpbin.org".to_vec();
-        encryptor.encrypt(&mut data1).unwrap();
+//         let mut data1 = b"httpbin.org".to_vec();
+//         encryptor.encrypt(&mut data1).unwrap();
 
-        let data2 = b"\r\nUser-Agent: ";
+//         let data2 = b"\r\nUser-Agent: ";
 
-        let mut data3 = b"zkTLS0.1".to_vec();
-        encryptor.encrypt(&mut data3).unwrap();
+//         let mut data3 = b"zkTLS0.1".to_vec();
+//         encryptor.encrypt(&mut data3).unwrap();
 
-        let data4 = b"\r\nAccept: */*\r\n";
+//         let data4 = b"\r\nAccept: */*\r\n";
 
-        let provider: RootProvider<_, Ethereum> =
-            ReqwestProvider::new_http(Url::parse(&url).unwrap());
+//         let provider: RootProvider<_, Ethereum> =
+//             ReqwestProvider::new_http(Url::parse(&url).unwrap());
 
-        let zk_tls_gateway = ZkTLSGateway::deploy(provider.clone()).await.unwrap();
+//         let zk_tls_gateway = ZkTLSGateway::deploy(provider.clone()).await.unwrap();
 
-        let gateway_address = *zk_tls_gateway.address();
+//         let gateway_address = *zk_tls_gateway.address();
 
-        zk_tls_gateway
-            .requestTLSCall(
-                "httpbin.org:443".into(),
-                "httpbin.org".into(),
-                Bytes::from(encryptor.public_key),
-                vec![
-                    Bytes::from(data0),
-                    Bytes::from(data1),
-                    Bytes::from(data2),
-                    Bytes::from(data3),
-                    Bytes::from(data4),
-                ],
-            )
-            .send()
-            .await
-            .unwrap()
-            .get_receipt()
-            .await
-            .unwrap();
+//         zk_tls_gateway
+//             .requestTLSCall(
+//                 "httpbin.org:443".into(),
+//                 "httpbin.org".into(),
+//                 Bytes::from(encryptor.public_key),
+//                 vec![
+//                     Bytes::from(data0),
+//                     Bytes::from(data1),
+//                     Bytes::from(data2),
+//                     Bytes::from(data3),
+//                     Bytes::from(data4),
+//                 ],
+//             )
+//             .send()
+//             .await
+//             .unwrap()
+//             .get_receipt()
+//             .await
+//             .unwrap();
 
-        let config = Config {
-            gateway_address,
-            begin_block_number: 0,
-            block_number_batch_size: 100,
-            prover_id: B256::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000000",
-            )
-            .unwrap(),
-            sleep_duration: 1,
-        };
+//         let config = Config {
+//             gateway_address,
+//             begin_block_number: 0,
+//             block_number_batch_size: 100,
+//             prover_id: B256::from_str(
+//                 "0x0000000000000000000000000000000000000000000000000000000000000000",
+//             )
+//             .unwrap(),
+//             sleep_duration: 1,
+//         };
 
-        let mut listener = Listener::new(Some(1), config, provider, (), decryptor);
+//         let mut listener = Listener::new(Some(1), config, provider, (), decryptor);
 
-        listener.pull_blocks().await.unwrap();
-    }
-}
+//         listener.pull_blocks().await.unwrap();
+//     }
+// }

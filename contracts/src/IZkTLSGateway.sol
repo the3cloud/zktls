@@ -31,7 +31,7 @@ interface IZkTLSGateway {
     /// @param field The field name.
     /// @param value The field value.
     /// @param isEncrypted Whether the value is encrypted.
-    event RequestTLSCallTemplateField(bytes32 indexed requestId, bytes32 indexed field, bytes value, bool isEncrypted);
+    event RequestTLSCallTemplateField(bytes32 indexed requestId, uint64 field, bytes value, bool isEncrypted);
 
     /// @notice Function to deliver a TLS call response.
     /// @param requestId The ID of the request.

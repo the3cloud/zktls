@@ -4,7 +4,6 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-t3zktls-listeners-ethereum.workspace = true
 t3zktls-core.workspace = true
 
 k256 = { workspace = true, features = ["ecdh"] }

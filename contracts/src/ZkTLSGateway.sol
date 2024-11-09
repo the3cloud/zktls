@@ -37,7 +37,7 @@ contract ZkTLSGateway is IZkTLSGateway {
         string calldata remote,
         string calldata serverName,
         bytes calldata encrypted_key,
-        bytes32[] calldata fields,
+        uint64[] calldata fields,
         bytes[] calldata values
     ) public {
         require(
