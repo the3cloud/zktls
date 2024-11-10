@@ -10,7 +10,7 @@ use rustls::{ClientConfig, ClientConnection, RootCertStore};
 use t3zktls_core::{GuestInputRequest, GuestInputResponse};
 use t3zktls_recordable_tls::{crypto_provider, time_provider, RecordableStream};
 
-pub fn request_tls_call(request: &GuestInputRequest) -> Result<GuestInputResponse> {
+pub fn request_tls_call(request: GuestInputRequest) -> Result<GuestInputResponse> {
     let temp_dir = tempfile::tempdir()?;
     let time_path = temp_dir.path().join("time");
     let stream_path = temp_dir.path().join("stream");
@@ -79,7 +79,7 @@ mod tests {
         };
 
         // let mut state = TLSRequestState::default();
-        let res = request_tls_call(&request)?;
+        let res = request_tls_call(request.clone())?;
 
         let _str = String::from_utf8_lossy(&res.response);
 

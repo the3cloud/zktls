@@ -17,8 +17,15 @@ impl RegexCache {
         }
     }
 
-    pub fn find(&mut self, key: B256, pattern: &str, text: &str) -> Result<Vec<FilteredResponse>> {
-        let regex = self.cache.try_get_or_insert(key, || Regex::new(pattern))?;
+    pub fn find(
+        &mut self,
+        template_id: B256,
+        pattern: &str,
+        text: &str,
+    ) -> Result<Vec<FilteredResponse>> {
+        let regex = self
+            .cache
+            .try_get_or_insert(template_id, || Regex::new(pattern))?;
 
         let matches = regex.find_iter(text);
 
@@ -30,8 +37,8 @@ impl RegexCache {
             let s = m.as_str();
 
             let filtered_response = FilteredResponse {
-                begin,
-                length,
+                begin: begin as u64,
+                length: length as u64,
                 content: s.as_bytes().to_vec(),
             };
 

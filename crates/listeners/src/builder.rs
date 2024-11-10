@@ -9,8 +9,8 @@ use t3zktls_contracts_ethereum::ZkTLSGateway::{
     RequestTLSCallBegin, RequestTLSCallSegment, RequestTLSCallTemplateField,
 };
 use t3zktls_core::{
-    OriginalRequest, ProveRequest, Request, Response, TLSDataDecryptor, TLSDataDecryptorGenerator,
-    TemplateRequest,
+    OriginalRequest, ProveRequest, Request, ResponseTemplate, TLSDataDecryptor,
+    TLSDataDecryptorGenerator, TemplateRequest,
 };
 
 pub struct RequestBuilder<'a, D> {
@@ -25,7 +25,7 @@ pub struct RequestBuilder<'a, D> {
 
     original_request: Option<BytesMut>,
     template_request: Option<TemplateRequest>,
-    response_template: Vec<Response>,
+    response_template: Option<ResponseTemplate>,
 
     decryptor: &'a D,
 }
@@ -44,7 +44,7 @@ impl<'a, D> RequestBuilder<'a, D> {
             response_template_id: None,
             original_request: None,
             template_request: None,
-            response_template: Vec::new(),
+            response_template: None,
         }
     }
 }
@@ -86,7 +86,7 @@ where
     pub fn add_response_template(&mut self, template: &Bytes) -> Result<()> {
         let response_template = t3zktls_core::template::parse_response_template(template.clone())?;
 
-        self.response_template = response_template;
+        self.response_template = Some(response_template);
 
         Ok(())
     }
@@ -181,7 +181,9 @@ where
             response_template_id: self
                 .response_template_id
                 .ok_or(anyhow::anyhow!("response template id is not set"))?,
-            response_template: self.response_template,
+            response_template: self
+                .response_template
+                .ok_or(anyhow::anyhow!("response template is not set"))?,
             request,
         })
     }

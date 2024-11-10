@@ -5,9 +5,10 @@ members = [
 
     "contracts",
     "crates/kms/local",
-    "crates/listeners",
     "crates/recordable-tls",
-    # "crates/input-builder",
+
+    "crates/listeners",
+    "crates/input-builder",
 
     "program/libs/tls",
     "program/libs/replayable-tls",
@@ -65,3 +66,8 @@ tempfile = "3.13.0"
 
 regex = "1.11.1"
 lru = "0.12.5"
+
+xrust = "1.2.0"
+jsonpath-rust = "0.7.3"
+
+serde_json = "1.0.132"

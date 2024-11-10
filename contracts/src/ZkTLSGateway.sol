@@ -71,6 +71,7 @@ contract ZkTLSGateway is IZkTLSGateway {
     function deliveryResponse(
         bytes32 requestId,
         bytes32 requestHash,
-        bytes calldata responseData
+        bytes calldata responseData,
+        bytes calldata proof
     ) public {}
 }

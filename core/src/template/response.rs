@@ -1,9 +1,9 @@
 use alloy::primitives::{bytes::Buf, Bytes};
 use anyhow::Result;
 
-use crate::Response;
+use crate::ResponseTemplate;
 
-pub fn parse_response_template(bytes: Bytes) -> Result<Vec<Response>> {
+pub fn parse_response_template(bytes: Bytes) -> Result<ResponseTemplate> {
     let mut bytes = bytes;
 
     let version = bytes.get_u8();
@@ -12,25 +12,20 @@ pub fn parse_response_template(bytes: Bytes) -> Result<Vec<Response>> {
         return Err(anyhow::anyhow!("unsupported version"));
     }
 
-    let mut responses = Vec::new();
-    while bytes.remaining() > 0 {
-        let response = build_response_template(&mut bytes)?;
+    let response = build_response_template(&mut bytes)?;
 
-        responses.push(response);
-    }
-
-    Ok(responses)
+    Ok(response)
 }
 
-fn build_response_template(bytes: &mut Bytes) -> Result<Response> {
+fn build_response_template(bytes: &mut Bytes) -> Result<ResponseTemplate> {
     let mode = bytes.get_u8();
 
     match mode {
         1 => {
             let begin = bytes.get_u64();
-            let end = bytes.get_u64();
+            let length = bytes.get_u64();
 
-            Ok(Response::Position { begin, end })
+            Ok(ResponseTemplate::Position { begin, length })
         }
         2 => {
             let length = bytes.get_u16() as usize;
@@ -39,7 +34,7 @@ fn build_response_template(bytes: &mut Bytes) -> Result<Response> {
                 .ok_or(anyhow::anyhow!("invalid length"))?
                 .to_vec();
 
-            Ok(Response::Regex(String::from_utf8(s)?))
+            Ok(ResponseTemplate::Regex(String::from_utf8(s)?))
         }
         3 => {
             let length = bytes.get_u16() as usize;
@@ -48,7 +43,7 @@ fn build_response_template(bytes: &mut Bytes) -> Result<Response> {
                 .ok_or(anyhow::anyhow!("invalid length"))?
                 .to_vec();
 
-            Ok(Response::XPath(String::from_utf8(s)?))
+            Ok(ResponseTemplate::XPath(String::from_utf8(s)?))
         }
         4 => {
             let length = bytes.get_u16() as usize;
@@ -57,7 +52,7 @@ fn build_response_template(bytes: &mut Bytes) -> Result<Response> {
                 .ok_or(anyhow::anyhow!("invalid length"))?
                 .to_vec();
 
-            Ok(Response::JsonPath(String::from_utf8(s)?))
+            Ok(ResponseTemplate::JsonPath(String::from_utf8(s)?))
         }
         _ => Err(anyhow::anyhow!("unsupported mode")),
     }
