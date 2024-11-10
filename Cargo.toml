@@ -9,11 +9,12 @@ members = [
 
     "crates/listeners",
     "crates/input-builder",
+    "crates/guest-prover",
 
     "program/libs/tls",
     "program/libs/replayable-tls",
 
-    "program/guest", "crates/prover",
+    "program/guest",
 
     # "bins/input-generator",
     # "bins/bundler",

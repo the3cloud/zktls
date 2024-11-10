@@ -4,17 +4,17 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-sp1-sdk = { version = "3.0.0", optional = true }
+sp1-sdk = { version = "3.0.0" }
 
-risc0-zkvm = { version = "1.1.2", default-features = false, features = ["client", "prove"], optional = true }
+t3zktls-program = { workspace = true, features = ["sp1-backend"] }
+t3zktls-core = { workspace = true }
 
-t3zktls-program = { workspace = true }
+ciborium.workspace = true
+
+anyhow = { workspace = true }
+
+tokio = { workspace = true }
 
 [features]
-# default = ["r0-backend"]
-default = ["sp1-backend"]
-sp1-backend = ["sp1-sdk", "t3zktls-program/sp1-backend"]
-sp1-backend-cuda = ["sp1-sdk/cuda", "sp1-backend"]
-
-r0-backend = ["risc0-zkvm", "t3zktls-program/r0-backend"]
-r0-backend-cuda = ["risc0-zkvm/cuda", "r0-backend"]
+default = []
+cuda = ["sp1-sdk/cuda"]
