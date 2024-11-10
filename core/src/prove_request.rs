@@ -1,7 +1,7 @@
-use alloy::primitives::{map::HashMap, Bytes, B256};
-use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
-use crate::GuestInputRequest;
+use alloy::primitives::{Bytes, B256};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OriginalRequest {
@@ -33,7 +33,8 @@ pub struct ProveRequest {
     pub request_id: B256,
     pub prover_id: B256,
 
-    pub remote: GuestInputRequest,
+    pub remote: String,
+    pub server_name: String,
 
     pub request: Request,
     pub response_template_id: B256,

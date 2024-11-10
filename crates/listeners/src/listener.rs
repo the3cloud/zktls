@@ -5,6 +5,7 @@
 use std::collections::HashMap;
 
 use alloy::{
+    consensus::Transaction,
     network::Network,
     primitives::{Address, B256},
     providers::Provider,
@@ -12,13 +13,13 @@ use alloy::{
     sol_types::SolEvent,
     transports::Transport,
 };
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use t3zktls_contracts_ethereum::ZkTLSGateway::{
     RequestTLSCallBegin, RequestTLSCallSegment, RequestTLSCallTemplateField,
 };
 use t3zktls_core::{ProveRequest, TLSDataDecryptorGenerator};
 
-use crate::Config;
+use crate::{Config, RequestBuilder};
 
 /// The main Listener struct.
 pub struct Listener<P, D, T, N> {
@@ -175,195 +176,60 @@ where
     }
 
     async fn build_request(&mut self, logs: &[Log]) -> Result<Option<ProveRequest>> {
+        let mut builder = RequestBuilder::new(self.prover_id, &self.decryptor);
+
+        for log in logs {
+            let selector = log.topic0().ok_or(anyhow::anyhow!("log topic is empty"))?;
+
+            match *selector {
+                RequestTLSCallBegin::SIGNATURE_HASH => {
+                    let decoded = RequestTLSCallBegin::decode_log_data(log.data(), false)?;
+
+                    let request_template_hash = decoded.requestTemplateHash;
+                    let response_template_hash = decoded.responseTemplateHash;
+
+                    if request_template_hash != B256::ZERO {
+                        let request_template = self
+                            .provider
+                            .get_transaction_by_hash(request_template_hash)
+                            .await?
+                            .ok_or(anyhow!("request template not found"))?;
+
+                        let request_template_data = request_template.input();
+
+                        builder.add_request_template(request_template_data)?;
+                    }
+
+                    if response_template_hash != B256::ZERO {
+                        let response_template = self
+                            .provider
+                            .get_transaction_by_hash(response_template_hash)
+                            .await?
+                            .ok_or(anyhow!("response template not found"))?;
+
+                        let response_template_data = response_template.input();
+
+                        builder.add_response_template(response_template_data)?;
+                    }
+
+                    builder.add_request_from_begin_logs(decoded)?;
+                }
+                RequestTLSCallSegment::SIGNATURE_HASH => {
+                    let decoded = RequestTLSCallSegment::decode_log_data(log.data(), false)?;
+                    builder.add_request_from_segment_logs(decoded).await?;
+                }
+                RequestTLSCallTemplateField::SIGNATURE_HASH => {
+                    let decoded = RequestTLSCallTemplateField::decode_log_data(log.data(), false)?;
+                    builder
+                        .add_request_from_template_field_logs(decoded)
+                        .await?;
+                }
+                _ => {
+                    return Err(anyhow::anyhow!("unknown log selector: {:#x}", selector));
+                }
+            }
+        }
+
         Ok(None)
     }
 }
-
-//     /// Computes the call data from a set of logs.
-//     async fn compute_call(&self, logs: &[Log]) -> Result<Option<ProveRequest>> {
-//         let mut request = ProveRequest::default();
-
-//         let mut request_data = Vec::new();
-
-//         let mut decryptor = None;
-
-//         let mut request_template = None;
-
-//         for log in logs {
-//             if log.topic0().ok_or(anyhow::anyhow!("log topic is empty"))?
-//                 == &RequestTLSCallBegin::SIGNATURE_HASH
-//             {
-//                 let decoded = RequestTLSCallBegin::decode_log_data(log.data(), false)?;
-
-//                 if decoded.prover != self.prover_id {
-//                     return Ok(None);
-//                 }
-
-//                 request.request_id = decoded.requestId;
-//                 request.prover_id = decoded.prover;
-//                 request.remote.url = decoded.remote;
-//                 request.remote.server_name = decoded.serverName;
-//                 request.max_response_size = decoded.maxResponseSize;
-
-//                 let request_template_hash = decoded.requestTemplateHash;
-//                 request.response_template_id = request_template_hash;
-
-//                 if request_template_hash != B256::ZERO {
-//                     let data = self
-//                         .provider
-//                         .get_transaction_by_hash(request_template_hash)
-//                         .await?
-//                         .ok_or(anyhow::anyhow!(
-//                             "Target transaction is not found, request template hash: {}",
-//                             request_template_hash
-//                         ))?;
-
-//                     let input = data.input().clone();
-
-//                     request_template = Some(RequestTemplate::new(input)?);
-//                 }
-
-//                 let response_template_hash = decoded.responseTemplateHash;
-
-//                 if response_template_hash != B256::ZERO {
-//                     let data = self
-//                         .provider
-//                         .get_transaction_by_hash(response_template_hash)
-//                         .await?
-//                         .ok_or(anyhow::anyhow!(
-//                             "Target transaction is not found, response template hash: {}",
-//                             response_template_hash
-//                         ))?;
-
-//                     let input = data.input().clone();
-
-//                     request.response_template = input;
-//                 }
-
-//                 decryptor = Some(
-//                     self.decryptor
-//                         .generate_decryptor(&decoded.encryptedKey)
-//                         .await?,
-//                 );
-//             } else if log.topic0().ok_or(anyhow::anyhow!("log topic is empty"))?
-//                 == &RequestTLSCallSegment::SIGNATURE_HASH
-//             {
-//                 if request_template.is_some() {
-//                     return Err(anyhow::anyhow!(
-//                         "request template is already set, it means wrong event."
-//                     ));
-//                 }
-
-//                 let decoded = RequestTLSCallSegment::decode_log_data(log.data(), false)?;
-
-//                 if !decoded.isEncrypted {
-//                     request_data.extend_from_slice(&decoded.data);
-//                 } else {
-//                     let mut dd = decoded.data.to_vec();
-
-//                     decryptor
-//                         .as_mut()
-//                         .ok_or(anyhow::anyhow!("decryptor is not initialized, the first event must be RequestTLSCallBegin"))?
-//                         .decrypt_tls_data(&mut dd)
-//                         .await?;
-//                     request_data.extend_from_slice(&dd);
-//                 }
-//             } else if log.topic0().ok_or(anyhow::anyhow!("log topic is empty"))?
-//                 == &RequestTLSCallTemplateField::SIGNATURE_HASH
-//             {
-//                 if let Some(ref mut request_template) = request_template {
-//                     let decoded = RequestTLSCallTemplateField::decode_log_data(log.data(), false)?;
-
-//                     let value = if decoded.isEncrypted {
-//                         let mut dd = decoded.value.to_vec();
-
-//                         decryptor
-//                             .as_mut()
-//                             .ok_or(anyhow::anyhow!(
-//                                 "decryptor is not initialized, the first event must be RequestTLSCallBegin"
-//                             ))?
-//                             .decrypt_tls_data(&mut dd)
-//                             .await?;
-
-//                         dd
-//                     } else {
-//                         decoded.value.to_vec()
-//                     };
-
-//                     request_template.fill(&decoded.field, &value);
-//                 } else {
-//                     return Err(anyhow::anyhow!(
-//                         "request template is not set, it means wrong event."
-//                     ));
-//                 }
-//             }
-//         }
-
-//         if let Some(request_template) = request_template {
-//             request.request_data = request_template.finalize()?;
-//         } else {
-//             request.request_data = request_data.into();
-//         }
-
-//         Ok(Some(request))
-//     }
-
-//     async fn compute_calls(&mut self, logs: &[Log]) -> Result<()> {
-//         let mut grouped_logs: HashMap<B256, Vec<Log>> = HashMap::new();
-
-//         for log in logs {
-//             let request_id = log
-//                 .topics()
-//                 .get(1)
-//                 .ok_or(anyhow::anyhow!("log topic is empty"))?;
-
-//             grouped_logs
-//                 .entry(*request_id)
-//                 .or_default()
-//                 .push(log.clone());
-//         }
-
-//         for (_, mut logs) in grouped_logs {
-//             logs.sort_by_key(|log| log.log_index);
-
-//             let call_result = self.compute_call(&logs).await;
-
-//             match call_result {
-//                 Ok(None) => {
-//                     log::debug!("mismatch call");
-//                 }
-//                 Ok(Some(prove_request)) => {
-//                     log::trace!("prove request: {:#?}", prove_request);
-
-//                     self.handler.handle_request_tls_call(prove_request).await?;
-//                 }
-//                 Err(e) => {
-//                     log::error!("failed to compute call: {:?}", e);
-//                 }
-//             }
-//         }
-
-//         Ok(())
-//     }
-
-//     /// Processes the logs and calls the handler for each TLS call request.
-//     async fn tidy_logs_and_call(&mut self, logs: Vec<Log>) -> Result<()> {
-//         let mut grouped_logs: HashMap<B256, Vec<Log>> = HashMap::new();
-
-//         // Group logs by transaction hash
-//         for log in logs {
-//             if let Some(tx_hash) = log.transaction_hash {
-//                 grouped_logs.entry(tx_hash).or_default().push(log);
-//             }
-//         }
-
-//         // Sort each group by log_index
-//         for logs in grouped_logs.values_mut() {
-//             logs.sort_by_key(|log| log.log_index);
-
-//             self.compute_calls(logs).await?;
-//         }
-
-//         Ok(())
-//     }
-// }
