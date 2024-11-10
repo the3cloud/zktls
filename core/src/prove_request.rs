@@ -47,6 +47,7 @@ impl Request {
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ResponseTemplate {
+    None,
     Position { begin: u64, length: u64 },
     Regex(String),
     XPath(String),

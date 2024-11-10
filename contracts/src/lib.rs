@@ -7,3 +7,9 @@ sol!(
     IZkTLSGateway,
     "../target/contracts/IZkTLSGateway.sol/IZkTLSGateway.json"
 );
+
+sol!(
+    #[sol(rpc)]
+    ZkTLSGateway,
+    "../target/contracts/ZkTLSGateway.sol/ZkTLSGateway.json"
+);

@@ -17,12 +17,12 @@ use anyhow::{anyhow, Result};
 use t3zktls_contracts_ethereum::IZkTLSGateway::{
     RequestTLSCallBegin, RequestTLSCallSegment, RequestTLSCallTemplateField,
 };
-use t3zktls_core::{ProveRequest, TLSDataDecryptorGenerator};
+use t3zktls_core::{Listener, ProveRequest, TLSDataDecryptorGenerator};
 
 use crate::{Config, RequestBuilder};
 
 /// The main Listener struct.
-pub struct Listener<P, D, T, N> {
+pub struct ZkTLSListener<P, D, T, N> {
     provider: P,
     gateway_address: Address,
 
@@ -36,7 +36,7 @@ pub struct Listener<P, D, T, N> {
     _marker: std::marker::PhantomData<(T, N)>,
 }
 
-impl<P, D, T, N> Listener<P, D, T, N> {
+impl<P, D, T, N> ZkTLSListener<P, D, T, N> {
     /// Creates a new Listener instance.
     ///
     /// # Arguments
@@ -59,7 +59,20 @@ impl<P, D, T, N> Listener<P, D, T, N> {
     }
 }
 
-impl<P, D, T, N> Listener<P, D, T, N>
+impl<P, D, T, N> Listener for ZkTLSListener<P, D, T, N>
+where
+    P: Provider<T, N>,
+    T: Transport + Clone,
+    N: Network,
+    D: TLSDataDecryptorGenerator + Send + Sync,
+    D::Decryptor: Send + Sync,
+{
+    async fn pull(&mut self) -> Result<Vec<ProveRequest>> {
+        self.pull_blocks().await
+    }
+}
+
+impl<P, D, T, N> ZkTLSListener<P, D, T, N>
 where
     P: Provider<T, N>,
     T: Transport + Clone,
@@ -67,17 +80,20 @@ where
     D: TLSDataDecryptorGenerator,
 {
     /// Pulls and processes blocks of events.
-    pub async fn pull_blocks(&mut self) -> Result<()> {
+    async fn pull_blocks(&mut self) -> Result<Vec<ProveRequest>> {
         let latest_block_number = self.provider.get_block_number().await?;
         let filter = self.compute_log_filter(latest_block_number);
 
         if let Some(filter) = filter {
+            log::trace!("filter: {:?}", filter);
             let logs = self.provider.get_logs(&filter).await?;
 
-            self.tidy_logs_by_txid_and_build_requests(logs).await?;
-        }
+            let requests = self.tidy_logs_by_txid_and_build_requests(logs).await?;
 
-        Ok(())
+            Ok(requests)
+        } else {
+            Ok(Vec::new())
+        }
     }
 
     fn compute_log_filter(&mut self, latest_block_number: u64) -> Option<Filter> {
@@ -230,6 +246,89 @@ where
             }
         }
 
-        Ok(None)
+        let prove_request = builder.build()?;
+
+        Ok(Some(prove_request))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use alloy::{
+        primitives::{Bytes, B256},
+        providers::ProviderBuilder,
+    };
+    use anyhow::Result;
+    use t3zktls_contracts_ethereum::ZkTLSGateway;
+    use t3zktls_core::{Listener, Request, TLSDataDecryptor, TLSDataDecryptorGenerator};
+
+    use crate::{Config, ZkTLSListener};
+
+    pub struct DefaultDecryptor;
+
+    impl TLSDataDecryptorGenerator for DefaultDecryptor {
+        type Decryptor = Self;
+
+        async fn generate_decryptor(
+            &self,
+            _encrypted_public_key: &alloy::primitives::Bytes,
+        ) -> Result<Self::Decryptor> {
+            Ok(Self)
+        }
+    }
+
+    impl TLSDataDecryptor for DefaultDecryptor {
+        async fn decrypt_tls_data(&mut self, _data: &mut Vec<u8>) -> Result<()> {
+            Ok(())
+        }
+    }
+
+    #[tokio::test]
+    async fn test_original_request() {
+        let _ = env_logger::builder().is_test(true).try_init();
+
+        let provider = ProviderBuilder::new().on_anvil();
+
+        let zk_tls_gateway = ZkTLSGateway::deploy(provider.clone()).await.unwrap();
+
+        let gateway_address = *zk_tls_gateway.address();
+
+        log::info!("Gateway address: {}", gateway_address);
+
+        let config = Config {
+            gateway_address,
+            begin_block_number: 0,
+            block_number_batch_size: 100,
+            prover_id: B256::ZERO,
+        };
+
+        let _receipt = zk_tls_gateway
+            .requestTLSCallSegment(
+                "httpbin.org:443".into(),
+                "httpbin.org".into(),
+                Bytes::new(),
+                vec![
+                    b"GET /get HTTP/1.1\r\n".to_vec().into(),
+                    b"Host: httpbin.org\r\n".to_vec().into(),
+                    b"Connection: close\r\n\r\n".to_vec().into(),
+                ],
+            )
+            .send()
+            .await
+            .unwrap()
+            .get_receipt()
+            .await
+            .unwrap();
+
+        let mut listener = ZkTLSListener::new(config, provider, DefaultDecryptor);
+
+        let res = listener.pull().await.unwrap();
+
+        if let Request::Original(original_request) = &res[0].request {
+            let data = original_request.data.to_vec();
+            log::info!("original_request: {:?}", String::from_utf8(data).unwrap());
+        }
+
+        log::info!("requests: {:#?}", res);
     }
 }

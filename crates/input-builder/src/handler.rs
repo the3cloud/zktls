@@ -43,6 +43,7 @@ impl TLSInputBuilder {
         let mut filtered_responses = Vec::new();
 
         match req.response_template {
+            ResponseTemplate::None => {}
             ResponseTemplate::Position { begin, length } => {
                 let fr = self.handle_response_template_position(begin, length, &response)?;
 

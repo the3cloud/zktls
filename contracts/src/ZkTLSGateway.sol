@@ -6,7 +6,7 @@ import "./IZkTLSGateway.sol";
 contract ZkTLSGateway is IZkTLSGateway {
     uint256 public nonce;
 
-    function requestTLSCall(
+    function requestTLSCallSegment(
         string calldata remote,
         string calldata serverName,
         bytes calldata encrypted_key,

@@ -25,7 +25,7 @@ pub struct RequestBuilder<'a, D> {
 
     original_request: Option<BytesMut>,
     template_request: Option<TemplateRequest>,
-    response_template: Option<ResponseTemplate>,
+    response_template: ResponseTemplate,
 
     decryptor: &'a D,
 }
@@ -44,7 +44,7 @@ impl<'a, D> RequestBuilder<'a, D> {
             response_template_id: None,
             original_request: None,
             template_request: None,
-            response_template: None,
+            response_template: ResponseTemplate::None,
         }
     }
 }
@@ -69,6 +69,17 @@ where
         self.request_template_id = Some(log.requestTemplateHash);
         self.response_template_id = Some(log.responseTemplateHash);
 
+        log::trace!(
+            "\nrequest_id: {:?}\n remote: {:?}\n server_name: {:?}\n encrypted_key: {:?}\n max_response_size: {:?}\n request_template_id: {:?}\n response_template_id: {:?}",
+            self.request_id,
+            self.remote,
+            self.server_name,
+            self.encrypted_key,
+            self.max_response_size,
+            self.request_template_id,
+            self.response_template_id,
+        );
+
         Ok(())
     }
 
@@ -86,7 +97,7 @@ where
     pub fn add_response_template(&mut self, template: &Bytes) -> Result<()> {
         let response_template = t3zktls_core::template::parse_response_template(template.clone())?;
 
-        self.response_template = Some(response_template);
+        self.response_template = response_template;
 
         Ok(())
     }
@@ -112,6 +123,8 @@ where
         } else {
             log.data
         };
+
+        log::trace!("append_data: {:?}", append_data);
 
         if let Some(original_request) = &mut self.original_request {
             original_request.put(append_data);
@@ -181,9 +194,7 @@ where
             response_template_id: self
                 .response_template_id
                 .ok_or(anyhow::anyhow!("response template id is not set"))?,
-            response_template: self
-                .response_template
-                .ok_or(anyhow::anyhow!("response template is not set"))?,
+            response_template: self.response_template,
             request,
         })
     }
