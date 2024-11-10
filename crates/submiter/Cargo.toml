@@ -1,0 +1,12 @@
+[package]
+name = "t3zktls-submiter-ethereum"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+alloy = { workspace = true }
+anyhow = { workspace = true }
+log = { workspace = true }
+
+t3zktls-core = { workspace = true }
+t3zktls-contracts-ethereum = { workspace = true }

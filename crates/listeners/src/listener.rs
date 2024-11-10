@@ -14,7 +14,7 @@ use alloy::{
     transports::Transport,
 };
 use anyhow::{anyhow, Result};
-use t3zktls_contracts_ethereum::ZkTLSGateway::{
+use t3zktls_contracts_ethereum::IZkTLSGateway::{
     RequestTLSCallBegin, RequestTLSCallSegment, RequestTLSCallTemplateField,
 };
 use t3zktls_core::{ProveRequest, TLSDataDecryptorGenerator};

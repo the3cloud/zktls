@@ -4,6 +4,6 @@ use alloy::sol;
 
 sol!(
     #[sol(rpc)]
-    ZkTLSGateway,
-    "../target/contracts/ZkTLSGateway.sol/ZkTLSGateway.json"
+    IZkTLSGateway,
+    "../target/contracts/IZkTLSGateway.sol/IZkTLSGateway.json"
 );
