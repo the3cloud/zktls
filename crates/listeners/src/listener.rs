@@ -255,12 +255,16 @@ where
 #[cfg(test)]
 mod tests {
     use alloy::{
-        primitives::{Bytes, B256},
-        providers::ProviderBuilder,
+        primitives::{
+            bytes::{BufMut, BytesMut},
+            Bytes, B256,
+        },
+        providers::{Provider, ProviderBuilder},
+        rpc::types::TransactionRequest,
     };
     use anyhow::Result;
     use t3zktls_contracts_ethereum::ZkTLSGateway;
-    use t3zktls_core::{Listener, Request, TLSDataDecryptor, TLSDataDecryptorGenerator};
+    use t3zktls_core::{Listener, TLSDataDecryptor, TLSDataDecryptorGenerator};
 
     use crate::{Config, ZkTLSListener};
 
@@ -320,14 +324,64 @@ mod tests {
             .await
             .unwrap();
 
+        let mut request_template = BytesMut::new();
+        request_template.put_u8(1);
+        request_template.put_slice(b"GET /get HTTP/1.1\r\nHost: \r\nConnection: \r\n\r\n");
+        let request_template = request_template.freeze();
+        let request = TransactionRequest::default()
+            .to(gateway_address)
+            .input(request_template.to_vec().into());
+        let receipt = provider
+            .send_transaction(request)
+            .await
+            .unwrap()
+            .get_receipt()
+            .await
+            .unwrap();
+        let request_template_hash = receipt.transaction_hash;
+
+        log::info!("request_template_hash: {}", request_template_hash);
+
+        let mut response_template = BytesMut::new();
+        response_template.put_u8(1);
+        response_template.put_u8(1);
+        response_template.put_u64(9);
+        response_template.put_u64(12);
+
+        let response_template = response_template.freeze();
+        let request = TransactionRequest::default()
+            .to(gateway_address)
+            .input(response_template.to_vec().into());
+        let receipt = provider
+            .send_transaction(request)
+            .await
+            .unwrap()
+            .get_receipt()
+            .await
+            .unwrap();
+        let response_template_hash = receipt.transaction_hash;
+        log::info!("response_template_hash: {}", response_template_hash);
+
+        zk_tls_gateway
+            .requestTLSCallTemplate(
+                request_template_hash,
+                response_template_hash,
+                "httpbin.org:443".into(),
+                "httpbin.org".into(),
+                Bytes::new(),
+                vec![27, 43],
+                vec!["httpbin.org".into(), "Close".into()],
+            )
+            .send()
+            .await
+            .unwrap()
+            .get_receipt()
+            .await
+            .unwrap();
+
         let mut listener = ZkTLSListener::new(config, provider, DefaultDecryptor);
 
         let res = listener.pull().await.unwrap();
-
-        if let Request::Original(original_request) = &res[0].request {
-            let data = original_request.data.to_vec();
-            log::info!("original_request: {:?}", String::from_utf8(data).unwrap());
-        }
 
         log::info!("requests: {:#?}", res);
     }

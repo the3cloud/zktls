@@ -49,8 +49,8 @@ contract ZkTLSGateway is IZkTLSGateway {
 
         emit RequestTLSCallBegin(
             requestId,
-            requestTemplateHash,
             0x0,
+            requestTemplateHash,
             responseTemplateHash,
             remote,
             serverName,
