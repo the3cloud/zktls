@@ -9,7 +9,7 @@ members = [
 
     "crates/listeners",
     "crates/input-builder",
-    "crates/guest-prover",
+    "crates/sp1-guest-prover",
 
     "program/libs/tls",
     "program/libs/replayable-tls",

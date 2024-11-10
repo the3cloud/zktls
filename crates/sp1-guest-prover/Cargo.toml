@@ -1,5 +1,5 @@
 [package]
-name = "t3zktls-guest-prover"
+name = "t3zktls-sp1-guest-prover"
 version.workspace = true
 edition.workspace = true
 
