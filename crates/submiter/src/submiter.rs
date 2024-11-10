@@ -3,6 +3,8 @@ use anyhow::Result;
 use t3zktls_contracts_ethereum::IZkTLSGateway;
 use t3zktls_core::{ProveResponse, Submiter};
 
+use crate::Config;
+
 pub struct ZkTLSSubmiter<P, T, N> {
     gateway_address: Address,
     confirmations: u64,
@@ -11,10 +13,10 @@ pub struct ZkTLSSubmiter<P, T, N> {
 }
 
 impl<P, T, N> ZkTLSSubmiter<P, T, N> {
-    pub fn new(provider: P, gateway_address: Address, confirmations: u64) -> Self {
+    pub fn new(provider: P, config: Config) -> Self {
         Self {
-            gateway_address,
-            confirmations,
+            gateway_address: config.gateway_address,
+            confirmations: config.confirmations,
             provider,
             _marker: std::marker::PhantomData,
         }
