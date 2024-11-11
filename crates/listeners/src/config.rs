@@ -8,8 +8,6 @@ pub struct Config {
     pub begin_block_number: u64,
     /// The number of blocks to process in each batch
     pub block_number_batch_size: u64,
-    /// The duration to sleep between each polling cycle (in seconds)
-    pub sleep_duration: u64,
     /// The prover id to filter by
     pub prover_id: B256,
 }

@@ -12,3 +12,8 @@ t3zktls-core.workspace = true
 t3zktls-contracts-ethereum.workspace = true
 
 [dev-dependencies]
+alloy = { workspace = true, features = ["provider-anvil-node"] }
+env_logger = { workspace = true }
+tokio = { workspace = true }
+
+ciborium = { workspace = true }

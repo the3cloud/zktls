@@ -2,7 +2,7 @@
 ///
 /// This struct is responsible for listening to events emitted by the ZkTLS Gateway contract,
 /// processing them, and handling TLS call requests.
-use std::{collections::HashMap, thread::sleep, time::Duration};
+use std::collections::HashMap;
 
 use alloy::{
     consensus::Transaction,
@@ -13,19 +13,16 @@ use alloy::{
     sol_types::SolEvent,
     transports::Transport,
 };
-use anyhow::Result;
-use t3zktls_contracts_ethereum::ZkTLSGateway::{
+use anyhow::{anyhow, Result};
+use t3zktls_contracts_ethereum::IZkTLSGateway::{
     RequestTLSCallBegin, RequestTLSCallSegment, RequestTLSCallTemplateField,
 };
-use t3zktls_core::{
-    ProveRequest, RequestTLSCallHandler, RequestTemplate, TLSDataDecryptor,
-    TLSDataDecryptorGenerator,
-};
+use t3zktls_core::{Listener, ProveRequest, TLSDataDecryptorGenerator};
 
-use crate::Config;
+use crate::{Config, RequestBuilder};
 
 /// The main Listener struct.
-pub struct Listener<P, H, D, T, N> {
+pub struct ZkTLSListener<P, D, T, N> {
     provider: P,
     gateway_address: Address,
 
@@ -34,17 +31,12 @@ pub struct Listener<P, H, D, T, N> {
     begin_block_number: u64,
     block_number_batch_size: u64,
 
-    sleep_duration: Duration,
-
-    loop_number: Option<u64>,
-
-    handler: H,
     decryptor: D,
 
     _marker: std::marker::PhantomData<(T, N)>,
 }
 
-impl<P, H, D, T, N> Listener<P, H, D, T, N> {
+impl<P, D, T, N> ZkTLSListener<P, D, T, N> {
     /// Creates a new Listener instance.
     ///
     /// # Arguments
@@ -54,80 +46,53 @@ impl<P, H, D, T, N> Listener<P, H, D, T, N> {
     /// * `provider` - The provider used to interact with the blockchain.
     /// * `handler` - The handler for processing TLS call requests.
     /// * `decryptor` - The decryptor for decoding TLS data.
-    pub fn new(
-        loop_number: Option<u64>,
-        config: Config,
-        provider: P,
-        handler: H,
-        decryptor: D,
-    ) -> Self {
+    pub fn new(config: Config, provider: P, decryptor: D) -> Self {
         Self {
             provider,
             gateway_address: config.gateway_address,
             begin_block_number: config.begin_block_number,
             block_number_batch_size: config.block_number_batch_size,
             prover_id: config.prover_id,
-            sleep_duration: Duration::from_secs(config.sleep_duration),
-            loop_number,
-            handler,
             decryptor,
             _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<P, H, D, T, N> Listener<P, H, D, T, N>
+impl<P, D, T, N> Listener for ZkTLSListener<P, D, T, N>
 where
     P: Provider<T, N>,
     T: Transport + Clone,
     N: Network,
-    H: RequestTLSCallHandler,
+    D: TLSDataDecryptorGenerator + Send + Sync,
+    D::Decryptor: Send + Sync,
+{
+    async fn pull(&mut self) -> Result<Vec<ProveRequest>> {
+        self.pull_blocks().await
+    }
+}
+
+impl<P, D, T, N> ZkTLSListener<P, D, T, N>
+where
+    P: Provider<T, N>,
+    T: Transport + Clone,
+    N: Network,
     D: TLSDataDecryptorGenerator,
 {
-    /// Pulls and processes a single block of events.
-    async fn pull_block(&mut self) -> Result<()> {
+    /// Pulls and processes blocks of events.
+    async fn pull_blocks(&mut self) -> Result<Vec<ProveRequest>> {
         let latest_block_number = self.provider.get_block_number().await?;
         let filter = self.compute_log_filter(latest_block_number);
 
         if let Some(filter) = filter {
+            log::trace!("filter: {:?}", filter);
             let logs = self.provider.get_logs(&filter).await?;
 
-            self.tidy_logs_and_call(logs).await?;
-        }
+            let requests = self.tidy_logs_by_txid_and_build_requests(logs).await?;
 
-        Ok(())
-    }
-    /// Pulls and processes blocks of events.
-    ///
-    /// This method is the main entry point for the listener. It continuously pulls blocks
-    /// and processes the events within them. The behavior depends on whether a loop number
-    /// is specified:
-    ///
-    /// - If `loop_number` is Some, it will process that many blocks and then stop.
-    /// - If `loop_number` is None, it will run indefinitely, processing blocks as they come.
-    ///
-    /// After processing each block, the method sleeps for the duration specified in the
-    /// configuration to avoid overwhelming the network.
-    ///
-    /// # Returns
-    ///
-    /// Returns a `Result<()>` which is Ok if all blocks were processed successfully,
-    /// or an Error if any issues occurred during processing.
-    pub async fn pull_blocks(&mut self) -> Result<()> {
-        if let Some(loop_number) = &mut self.loop_number {
-            for _ in 0..*loop_number {
-                self.pull_block().await?;
-
-                sleep(self.sleep_duration);
-            }
-
-            Ok(())
+            Ok(requests)
         } else {
-            loop {
-                self.pull_block().await?;
-
-                sleep(self.sleep_duration);
-            }
+            Ok(Vec::new())
         }
     }
 
@@ -165,136 +130,38 @@ where
         Some(filter)
     }
 
-    /// Computes the call data from a set of logs.
-    async fn compute_call(&self, logs: &[Log]) -> Result<Option<ProveRequest>> {
-        let mut request = ProveRequest::default();
+    async fn tidy_logs_by_txid_and_build_requests(
+        &mut self,
+        logs: Vec<Log>,
+    ) -> Result<Vec<ProveRequest>> {
+        let mut grouped_logs: HashMap<B256, Vec<Log>> = HashMap::new();
 
-        let mut request_data = Vec::new();
-
-        let mut decryptor = None;
-
-        let mut request_template = None;
-
+        // Group logs by transaction hash
         for log in logs {
-            if log.topic0().ok_or(anyhow::anyhow!("log topic is empty"))?
-                == &RequestTLSCallBegin::SIGNATURE_HASH
-            {
-                let decoded = RequestTLSCallBegin::decode_log_data(log.data(), false)?;
-
-                if decoded.prover != self.prover_id {
-                    return Ok(None);
-                }
-
-                request.request_id = decoded.requestId;
-                request.prover_id = decoded.prover;
-                request.remote.url = decoded.remote;
-                request.remote.server_name = decoded.serverName;
-                request.max_response_size = decoded.maxResponseSize;
-
-                let request_template_hash = decoded.requestTemplateHash;
-                request.response_template_id = request_template_hash;
-
-                if request_template_hash != B256::ZERO {
-                    let data = self
-                        .provider
-                        .get_transaction_by_hash(request_template_hash)
-                        .await?
-                        .ok_or(anyhow::anyhow!(
-                            "Target transaction is not found, request template hash: {}",
-                            request_template_hash
-                        ))?;
-
-                    let input = data.input().clone();
-
-                    request_template = Some(RequestTemplate::new(input)?);
-                }
-
-                let response_template_hash = decoded.responseTemplateHash;
-
-                if response_template_hash != B256::ZERO {
-                    let data = self
-                        .provider
-                        .get_transaction_by_hash(response_template_hash)
-                        .await?
-                        .ok_or(anyhow::anyhow!(
-                            "Target transaction is not found, response template hash: {}",
-                            response_template_hash
-                        ))?;
-
-                    let input = data.input().clone();
-
-                    request.response_template = input;
-                }
-
-                decryptor = Some(
-                    self.decryptor
-                        .generate_decryptor(&decoded.encryptedKey)
-                        .await?,
-                );
-            } else if log.topic0().ok_or(anyhow::anyhow!("log topic is empty"))?
-                == &RequestTLSCallSegment::SIGNATURE_HASH
-            {
-                if request_template.is_some() {
-                    return Err(anyhow::anyhow!(
-                        "request template is already set, it means wrong event."
-                    ));
-                }
-
-                let decoded = RequestTLSCallSegment::decode_log_data(log.data(), false)?;
-
-                if !decoded.isEncrypted {
-                    request_data.extend_from_slice(&decoded.data);
-                } else {
-                    let mut dd = decoded.data.to_vec();
-
-                    decryptor
-                        .as_mut()
-                        .ok_or(anyhow::anyhow!("decryptor is not initialized, the first event must be RequestTLSCallBegin"))?
-                        .decrypt_tls_data(&mut dd)
-                        .await?;
-                    request_data.extend_from_slice(&dd);
-                }
-            } else if log.topic0().ok_or(anyhow::anyhow!("log topic is empty"))?
-                == &RequestTLSCallTemplateField::SIGNATURE_HASH
-            {
-                if let Some(ref mut request_template) = request_template {
-                    let decoded = RequestTLSCallTemplateField::decode_log_data(log.data(), false)?;
-
-                    let value = if decoded.isEncrypted {
-                        let mut dd = decoded.value.to_vec();
-
-                        decryptor
-                            .as_mut()
-                            .ok_or(anyhow::anyhow!(
-                                "decryptor is not initialized, the first event must be RequestTLSCallBegin"
-                            ))?
-                            .decrypt_tls_data(&mut dd)
-                            .await?;
-
-                        dd
-                    } else {
-                        decoded.value.to_vec()
-                    };
-
-                    request_template.fill(&decoded.field, &value);
-                } else {
-                    return Err(anyhow::anyhow!(
-                        "request template is not set, it means wrong event."
-                    ));
-                }
+            if let Some(tx_hash) = log.transaction_hash {
+                grouped_logs.entry(tx_hash).or_default().push(log);
             }
         }
 
-        if let Some(request_template) = request_template {
-            request.request_data = request_template.finalize()?;
-        } else {
-            request.request_data = request_data.into();
+        let mut requests = Vec::new();
+
+        // Sort each group by log_index
+        for logs in grouped_logs.values_mut() {
+            logs.sort_by_key(|log| log.log_index);
+
+            requests.extend(
+                self.tidy_logs_by_request_id_and_build_requests(logs)
+                    .await?,
+            );
         }
 
-        Ok(Some(request))
+        Ok(requests)
     }
 
-    async fn compute_calls(&mut self, logs: &[Log]) -> Result<()> {
+    async fn tidy_logs_by_request_id_and_build_requests(
+        &mut self,
+        logs: &[Log],
+    ) -> Result<Vec<ProveRequest>> {
         let mut grouped_logs: HashMap<B256, Vec<Log>> = HashMap::new();
 
         for log in logs {
@@ -309,47 +176,219 @@ where
                 .push(log.clone());
         }
 
+        let mut requests = Vec::new();
+
         for (_, mut logs) in grouped_logs {
             logs.sort_by_key(|log| log.log_index);
 
-            let call_result = self.compute_call(&logs).await;
+            let call_result = self.build_request(&logs).await?;
 
-            match call_result {
-                Ok(None) => {
-                    log::debug!("mismatch call");
-                }
-                Ok(Some(prove_request)) => {
-                    log::trace!("prove request: {:#?}", prove_request);
-
-                    self.handler.handle_request_tls_call(prove_request).await?;
-                }
-                Err(e) => {
-                    log::error!("failed to compute call: {:?}", e);
-                }
+            if let Some(prove_request) = call_result {
+                requests.push(prove_request);
             }
         }
 
-        Ok(())
+        Ok(requests)
     }
 
-    /// Processes the logs and calls the handler for each TLS call request.
-    async fn tidy_logs_and_call(&mut self, logs: Vec<Log>) -> Result<()> {
-        let mut grouped_logs: HashMap<B256, Vec<Log>> = HashMap::new();
+    async fn build_request(&mut self, logs: &[Log]) -> Result<Option<ProveRequest>> {
+        let mut builder = RequestBuilder::new(self.prover_id, &self.decryptor);
 
-        // Group logs by transaction hash
         for log in logs {
-            if let Some(tx_hash) = log.transaction_hash {
-                grouped_logs.entry(tx_hash).or_default().push(log);
+            let selector = log.topic0().ok_or(anyhow::anyhow!("log topic is empty"))?;
+
+            match *selector {
+                RequestTLSCallBegin::SIGNATURE_HASH => {
+                    let decoded = RequestTLSCallBegin::decode_log_data(log.data(), false)?;
+
+                    let request_template_hash = decoded.requestTemplateHash;
+                    let response_template_hash = decoded.responseTemplateHash;
+
+                    if request_template_hash != B256::ZERO {
+                        let request_template = self
+                            .provider
+                            .get_transaction_by_hash(request_template_hash)
+                            .await?
+                            .ok_or(anyhow!("request template not found"))?;
+
+                        let request_template_data = request_template.input();
+
+                        builder.add_request_template(request_template_data)?;
+                    }
+
+                    if response_template_hash != B256::ZERO {
+                        let response_template = self
+                            .provider
+                            .get_transaction_by_hash(response_template_hash)
+                            .await?
+                            .ok_or(anyhow!("response template not found"))?;
+
+                        let response_template_data = response_template.input();
+
+                        builder.add_response_template(response_template_data)?;
+                    }
+
+                    builder.add_request_from_begin_logs(decoded)?;
+                }
+                RequestTLSCallSegment::SIGNATURE_HASH => {
+                    let decoded = RequestTLSCallSegment::decode_log_data(log.data(), false)?;
+                    builder.add_request_from_segment_logs(decoded).await?;
+                }
+                RequestTLSCallTemplateField::SIGNATURE_HASH => {
+                    let decoded = RequestTLSCallTemplateField::decode_log_data(log.data(), false)?;
+                    builder
+                        .add_request_from_template_field_logs(decoded)
+                        .await?;
+                }
+                _ => {
+                    return Err(anyhow::anyhow!("unknown log selector: {:#x}", selector));
+                }
             }
         }
 
-        // Sort each group by log_index
-        for logs in grouped_logs.values_mut() {
-            logs.sort_by_key(|log| log.log_index);
+        let prove_request = builder.build()?;
 
-            self.compute_calls(logs).await?;
+        Ok(Some(prove_request))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use alloy::{
+        primitives::{
+            bytes::{BufMut, BytesMut},
+            Bytes, B256,
+        },
+        providers::{Provider, ProviderBuilder},
+        rpc::types::TransactionRequest,
+    };
+    use anyhow::Result;
+    use t3zktls_contracts_ethereum::ZkTLSGateway;
+    use t3zktls_core::{Listener, TLSDataDecryptor, TLSDataDecryptorGenerator};
+
+    use crate::{Config, ZkTLSListener};
+
+    pub struct DefaultDecryptor;
+
+    impl TLSDataDecryptorGenerator for DefaultDecryptor {
+        type Decryptor = Self;
+
+        async fn generate_decryptor(
+            &self,
+            _encrypted_public_key: &alloy::primitives::Bytes,
+        ) -> Result<Self::Decryptor> {
+            Ok(Self)
         }
+    }
 
-        Ok(())
+    impl TLSDataDecryptor for DefaultDecryptor {
+        async fn decrypt_tls_data(&mut self, _data: &mut Vec<u8>) -> Result<()> {
+            Ok(())
+        }
+    }
+
+    #[tokio::test]
+    async fn test_original_request() {
+        let _ = env_logger::builder().is_test(true).try_init();
+
+        let provider = ProviderBuilder::new().on_anvil();
+
+        let zk_tls_gateway = ZkTLSGateway::deploy(provider.clone()).await.unwrap();
+
+        let gateway_address = *zk_tls_gateway.address();
+
+        log::info!("Gateway address: {}", gateway_address);
+
+        let config = Config {
+            gateway_address,
+            begin_block_number: 0,
+            block_number_batch_size: 100,
+            prover_id: B256::ZERO,
+        };
+
+        let _receipt = zk_tls_gateway
+            .requestTLSCallSegment(
+                "httpbin.org:443".into(),
+                "httpbin.org".into(),
+                Bytes::new(),
+                vec![
+                    b"GET /get HTTP/1.1\r\n".to_vec().into(),
+                    b"Host: httpbin.org\r\n".to_vec().into(),
+                    b"Connection: close\r\n\r\n".to_vec().into(),
+                ],
+            )
+            .send()
+            .await
+            .unwrap()
+            .get_receipt()
+            .await
+            .unwrap();
+
+        let mut request_template = BytesMut::new();
+        request_template.put_u8(1);
+        request_template.put_slice(b"GET /get HTTP/1.1\r\nHost: \r\nConnection: \r\n\r\n");
+        let request_template = request_template.freeze();
+        let request = TransactionRequest::default()
+            .to(gateway_address)
+            .input(request_template.to_vec().into());
+        let receipt = provider
+            .send_transaction(request)
+            .await
+            .unwrap()
+            .get_receipt()
+            .await
+            .unwrap();
+        let request_template_hash = receipt.transaction_hash;
+
+        log::info!("request_template_hash: {}", request_template_hash);
+
+        let mut response_template = BytesMut::new();
+        response_template.put_u8(1);
+        response_template.put_u8(1);
+        response_template.put_u64(9);
+        response_template.put_u64(12);
+
+        let response_template = response_template.freeze();
+        let request = TransactionRequest::default()
+            .to(gateway_address)
+            .input(response_template.to_vec().into());
+        let receipt = provider
+            .send_transaction(request)
+            .await
+            .unwrap()
+            .get_receipt()
+            .await
+            .unwrap();
+        let response_template_hash = receipt.transaction_hash;
+        log::info!("response_template_hash: {}", response_template_hash);
+
+        zk_tls_gateway
+            .requestTLSCallTemplate(
+                request_template_hash,
+                response_template_hash,
+                "httpbin.org:443".into(),
+                "httpbin.org".into(),
+                Bytes::new(),
+                vec![27, 43],
+                vec!["httpbin.org".into(), "Close".into()],
+            )
+            .send()
+            .await
+            .unwrap()
+            .get_receipt()
+            .await
+            .unwrap();
+
+        let mut listener = ZkTLSListener::new(config, provider, DefaultDecryptor);
+
+        let res = listener.pull().await.unwrap();
+
+        log::info!("requests: {:#?}", res);
+
+        let mut req0_bytes = Vec::new();
+        ciborium::ser::into_writer(&res[0], &mut req0_bytes).unwrap();
+
+        let mut req1_bytes = Vec::new();
+        ciborium::ser::into_writer(&res[1], &mut req1_bytes).unwrap();
     }
 }

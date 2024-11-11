@@ -10,7 +10,7 @@ use rustls::{ClientConfig, ClientConnection, RootCertStore};
 use t3zktls_core::{GuestInputRequest, GuestInputResponse};
 use t3zktls_recordable_tls::{crypto_provider, time_provider, RecordableStream};
 
-pub fn request_tls_call(request: &GuestInputRequest) -> Result<GuestInputResponse> {
+pub fn request_tls_call(request: GuestInputRequest) -> Result<GuestInputResponse> {
     let temp_dir = tempfile::tempdir()?;
     let time_path = temp_dir.path().join("time");
     let stream_path = temp_dir.path().join("stream");
@@ -78,8 +78,7 @@ mod tests {
             data: data.to_vec(),
         };
 
-        // let mut state = TLSRequestState::default();
-        let res = request_tls_call(&request)?;
+        let res = request_tls_call(request.clone())?;
 
         let _str = String::from_utf8_lossy(&res.response);
 
@@ -90,8 +89,6 @@ mod tests {
 
         let mut output = Vec::new();
         ciborium::into_writer(&input, &mut output).unwrap();
-        let target = concat!(env!("CARGO_MANIFEST_DIR"), "/../../target/input.cbor");
-        fs::write(target, output)?;
 
         Ok(())
     }

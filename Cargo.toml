@@ -5,17 +5,22 @@ members = [
 
     "contracts",
     "crates/kms/local",
-    "crates/listeners",
     "crates/recordable-tls",
+
+    "crates/listeners",
     "crates/input-builder",
+    "crates/sp1-guest-prover",
+
+    "crates/prover",
 
     "program/libs/tls",
     "program/libs/replayable-tls",
 
-    "program/guest",
+    "program/guest", "crates/submiter",
 
-    "bins/input-generator",
-    "bins/bundler", "crates/guest-prover",
+    # "bins/input-generator",
+    # "bins/bundler",
+    # "crates/guest-prover",
 ]
 
 exclude = ["program/sp1/tls-sp1", "program/risc0/tls-r0"]
@@ -31,7 +36,10 @@ log = "0.4.22"
 env_logger = "0.11.5"
 
 hex = "0.4.3"
-serde = { version = "1.0.214", default-features = false, features = ["alloc", "derive"] }
+serde = { version = "1.0.214", default-features = false, features = [
+    "alloc",
+    "derive",
+] }
 bytes = "1.7.2"
 ciborium = "0.2.0"
 
@@ -61,3 +69,8 @@ tempfile = "3.13.0"
 
 regex = "1.11.1"
 lru = "0.12.5"
+
+xrust = "1.2.0"
+jsonpath-rust = "0.7.3"
+
+serde_json = "1.0.132"

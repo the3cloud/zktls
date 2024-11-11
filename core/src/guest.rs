@@ -31,8 +31,8 @@ pub struct GuestOutput {
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct FilteredResponse {
-    pub begin: usize,
-    pub length: usize,
+    pub begin: u64,
+    pub length: u64,
 
     pub content: Vec<u8>,
 }

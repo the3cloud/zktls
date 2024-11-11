@@ -10,8 +10,3 @@ alloy = { workspace = true, features = ["serde"] }
 log = { workspace = true }
 
 anyhow = { workspace = true }
-hex = { workspace = true, optional = true }
-
-[features]
-default = ["template"]
-template = ["hex"]

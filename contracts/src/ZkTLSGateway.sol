@@ -6,7 +6,7 @@ import "./IZkTLSGateway.sol";
 contract ZkTLSGateway is IZkTLSGateway {
     uint256 public nonce;
 
-    function requestTLSCall(
+    function requestTLSCallSegment(
         string calldata remote,
         string calldata serverName,
         bytes calldata encrypted_key,
@@ -37,7 +37,7 @@ contract ZkTLSGateway is IZkTLSGateway {
         string calldata remote,
         string calldata serverName,
         bytes calldata encrypted_key,
-        bytes32[] calldata fields,
+        uint64[] calldata fields,
         bytes[] calldata values
     ) public {
         require(
@@ -49,8 +49,8 @@ contract ZkTLSGateway is IZkTLSGateway {
 
         emit RequestTLSCallBegin(
             requestId,
-            requestTemplateHash,
             0x0,
+            requestTemplateHash,
             responseTemplateHash,
             remote,
             serverName,
@@ -71,6 +71,7 @@ contract ZkTLSGateway is IZkTLSGateway {
     function deliveryResponse(
         bytes32 requestId,
         bytes32 requestHash,
-        bytes calldata responseData
+        bytes calldata responseData,
+        bytes calldata proof
     ) public {}
 }

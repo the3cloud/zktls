@@ -1,0 +1,20 @@
+[package]
+name = "t3zktls-sp1-guest-prover"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+sp1-sdk = { version = "3.0.0" }
+
+t3zktls-program = { workspace = true, features = ["sp1-backend"] }
+t3zktls-core = { workspace = true }
+
+ciborium.workspace = true
+
+anyhow = { workspace = true }
+
+tokio = { workspace = true }
+
+[features]
+default = []
+cuda = ["sp1-sdk/cuda"]
