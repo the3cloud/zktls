@@ -19,7 +19,7 @@ tempfile = { workspace = true }
 lru.workspace = true
 regex.workspace = true
 
-tokio = { workspace = true }
+tokio = { workspace = true, features = ["rt", "macros"] }
 
 # xrust = { workspace = true }
 jsonpath-rust = { workspace = true }

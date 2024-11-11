@@ -384,5 +384,11 @@ mod tests {
         let res = listener.pull().await.unwrap();
 
         log::info!("requests: {:#?}", res);
+
+        let mut req0_bytes = Vec::new();
+        ciborium::ser::into_writer(&res[0], &mut req0_bytes).unwrap();
+
+        let mut req1_bytes = Vec::new();
+        ciborium::ser::into_writer(&res[1], &mut req1_bytes).unwrap();
     }
 }

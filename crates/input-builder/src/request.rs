@@ -78,7 +78,6 @@ mod tests {
             data: data.to_vec(),
         };
 
-        // let mut state = TLSRequestState::default();
         let res = request_tls_call(request.clone())?;
 
         let _str = String::from_utf8_lossy(&res.response);
@@ -90,8 +89,6 @@ mod tests {
 
         let mut output = Vec::new();
         ciborium::into_writer(&input, &mut output).unwrap();
-        let target = concat!(env!("CARGO_MANIFEST_DIR"), "/../../target/input.cbor");
-        fs::write(target, output)?;
 
         Ok(())
     }

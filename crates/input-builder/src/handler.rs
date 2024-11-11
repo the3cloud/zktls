@@ -1,3 +1,5 @@
+use std::num::NonZeroUsize;
+
 use alloy::primitives::B256;
 use anyhow::Result;
 use t3zktls_core::{
@@ -11,10 +13,13 @@ pub struct TLSInputBuilder {
 }
 
 impl TLSInputBuilder {
-    pub fn new(config: Config) -> Self {
-        Self {
-            cache: RegexCache::new(config.regex_cache_size),
-        }
+    pub fn new(config: Config) -> Result<Self> {
+        Ok(Self {
+            cache: RegexCache::new(
+                NonZeroUsize::new(config.regex_cache_size)
+                    .ok_or(anyhow::anyhow!("regex_cache_size must be greater than 0"))?,
+            ),
+        })
     }
 }
 
@@ -115,33 +120,6 @@ impl TLSInputBuilder {
         _xpath: String,
         _response: String,
     ) -> Result<Vec<FilteredResponse>> {
-        // use xrust::transform::context::StaticContextBuilder;
-        // use xrust::Error;
-        // use xrust::ErrorKind;
-
-        // let xpath = xrust::parser::xpath::parse::<RNode>(&xpath, None)
-        //     .map_err(|_| anyhow::anyhow!("invalid xpath"))?;
-
-        // let root = RNode::new_document();
-        // xrust::parser::xml::parse(root.clone(), &response, None)
-        //     .map_err(|_| anyhow::anyhow!("invalid xml"))?;
-
-        // let context = ContextBuilder::new()
-        //     .context(vec![Item::Node(root)])
-        //     .build();
-
-        // let mut stctxt = StaticContextBuilder::new()
-        //     .message(|_| Ok(()))
-        //     .fetcher(|_| Err(Error::new(ErrorKind::NotImplemented, "not implemented")))
-        //     .parser(|_| Err(Error::new(ErrorKind::NotImplemented, "not implemented")))
-        //     .build();
-
-        // let _result = context
-        //     .dispatch(&mut stctxt, &xpath)
-        //     .map_err(|_| anyhow::anyhow!("invalid xpath match"))?;
-
-        // Ok(Vec::new())
-
         Err(anyhow::anyhow!("not implemented"))
     }
 
@@ -151,5 +129,29 @@ impl TLSInputBuilder {
         _response: String,
     ) -> Result<Vec<FilteredResponse>> {
         Err(anyhow::anyhow!("not implemented"))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use t3zktls_core::ProveRequest;
+
+    use crate::{Config, TLSInputBuilder};
+
+    #[tokio::test]
+    async fn test_handle_response1() {
+        let bytes = include_bytes!("../testdata/req0.cbor");
+
+        let req: ProveRequest = ciborium::from_reader(bytes.as_slice()).unwrap();
+
+        let config = Config {
+            regex_cache_size: 100,
+        };
+
+        let mut builder = TLSInputBuilder::new(config).unwrap();
+
+        let input = builder.handle_request_tls_call(req).await.unwrap();
+
+        println!("{:?}", input);
     }
 }
