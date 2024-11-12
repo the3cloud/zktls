@@ -1,7 +1,8 @@
 mod random;
-pub use random::set_random_path;
+pub use random::random;
 
 mod time;
+pub use time::*;
 
 mod stream;
 pub use stream::*;

@@ -134,6 +134,8 @@ impl TLSInputBuilder {
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
+
     use t3zktls_core::ProveRequest;
 
     use crate::{Config, TLSInputBuilder};
@@ -152,6 +154,29 @@ mod tests {
 
         let input = builder.handle_request_tls_call(req).await.unwrap();
 
-        println!("{:?}", input);
+        let mut guest_input_bytes = Vec::new();
+        ciborium::ser::into_writer(&input, &mut guest_input_bytes).unwrap();
+
+        fs::write("../../target/guest_input0.cbor", guest_input_bytes).unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_handle_response2() {
+        let bytes = include_bytes!("../testdata/req1.cbor");
+
+        let req: ProveRequest = ciborium::from_reader(bytes.as_slice()).unwrap();
+
+        let config = Config {
+            regex_cache_size: 100,
+        };
+
+        let mut builder = TLSInputBuilder::new(config).unwrap();
+
+        let input = builder.handle_request_tls_call(req).await.unwrap();
+
+        let mut guest_input_bytes = Vec::new();
+        ciborium::ser::into_writer(&input, &mut guest_input_bytes).unwrap();
+
+        fs::write("../../target/guest_input1.cbor", guest_input_bytes).unwrap();
     }
 }

@@ -254,6 +254,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
+
     use alloy::{
         primitives::{
             bytes::{BufMut, BytesMut},
@@ -383,12 +385,14 @@ mod tests {
 
         let res = listener.pull().await.unwrap();
 
-        log::info!("requests: {:#?}", res);
-
         let mut req0_bytes = Vec::new();
         ciborium::ser::into_writer(&res[0], &mut req0_bytes).unwrap();
 
+        fs::write("../../target/req0.cbor", req0_bytes).unwrap();
+
         let mut req1_bytes = Vec::new();
         ciborium::ser::into_writer(&res[1], &mut req1_bytes).unwrap();
+
+        fs::write("../../target/req1.cbor", req1_bytes).unwrap();
     }
 }

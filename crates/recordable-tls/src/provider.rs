@@ -1,9 +1,4 @@
-use std::path::Path;
-
-use rustls::{
-    crypto::{CryptoProvider, SupportedKxGroup},
-    time_provider::TimeProvider,
-};
+use rustls::crypto::{CryptoProvider, SupportedKxGroup};
 use rustls_rustcrypto::{all_cipher_suites, all_signature_verification_algorithms, kx, Provider};
 
 use crate::{random::RecordableRng, time::RecordableTimeProvider};
@@ -25,6 +20,6 @@ pub fn crypto_provider() -> CryptoProvider {
     }
 }
 
-pub fn time_provider<P: AsRef<Path>>(path: P) -> impl TimeProvider {
-    RecordableTimeProvider::new(path.as_ref().to_path_buf())
+pub fn time_provider() -> RecordableTimeProvider {
+    RecordableTimeProvider::new()
 }

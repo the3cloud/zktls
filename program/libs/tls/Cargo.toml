@@ -16,3 +16,6 @@ ciborium = { workspace = true }
 sha2.workspace = true
 
 hex.workspace = true
+
+[dev-dependencies]
+env_logger = { workspace = true }

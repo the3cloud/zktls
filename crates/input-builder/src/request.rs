@@ -1,5 +1,4 @@
 use std::{
-    fs::{self, File},
     io::{Read, Write},
     net::TcpStream,
     sync::Arc,
@@ -11,25 +10,20 @@ use t3zktls_core::{GuestInputRequest, GuestInputResponse};
 use t3zktls_recordable_tls::{crypto_provider, time_provider, RecordableStream};
 
 pub fn request_tls_call(request: GuestInputRequest) -> Result<GuestInputResponse> {
-    let temp_dir = tempfile::tempdir()?;
-    let time_path = temp_dir.path().join("time");
-    let stream_path = temp_dir.path().join("stream");
-    let random_path = temp_dir.path().join("random");
-
-    t3zktls_recordable_tls::set_random_path(&random_path);
-
     let stream = TcpStream::connect(&request.url)?;
-    let mut recordable_stream = RecordableStream::new(stream, File::create(&stream_path)?);
+    let mut recordable_stream = RecordableStream::new(stream);
 
     let root_store = RootCertStore {
         roots: webpki_roots::TLS_SERVER_ROOTS.into(),
     };
 
     let crypto_provider = crypto_provider();
-    let time_provider = time_provider(time_path.clone());
+    let time_provider = time_provider();
+
+    let time_provider = Arc::new(time_provider);
 
     let config =
-        ClientConfig::builder_with_details(Arc::new(crypto_provider), Arc::new(time_provider))
+        ClientConfig::builder_with_details(Arc::new(crypto_provider), time_provider.clone())
             .with_safe_default_protocol_versions()?
             .with_root_certificates(root_store)
             .with_no_client_auth();
@@ -45,10 +39,17 @@ pub fn request_tls_call(request: GuestInputRequest) -> Result<GuestInputResponse
     let mut buf = Vec::new();
     tls.read_to_end(&mut buf)?;
 
-    // read data to state
-    let random = fs::read(random_path)?;
-    let time = fs::read_to_string(time_path)?;
-    let stream = fs::read(stream_path)?;
+    let random = t3zktls_recordable_tls::random();
+    let time = time_provider
+        .time()
+        .ok_or(anyhow::anyhow!("Time not set"))?;
+    let stream_data = recordable_stream.stream_data();
+
+    let mut stream = Vec::new();
+
+    for td in stream_data {
+        stream.extend(td.to_bytes());
+    }
 
     Ok(GuestInputResponse {
         time,

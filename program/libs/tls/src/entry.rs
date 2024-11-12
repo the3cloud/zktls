@@ -24,6 +24,8 @@ mod tests {
 
     #[test]
     fn test_entry() {
+        let _ = env_logger::builder().is_test(true).try_init();
+
         let input_bytes = include_bytes!("../testdata/input.cbor");
 
         let output = entry(input_bytes);

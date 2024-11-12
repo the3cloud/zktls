@@ -10,3 +10,5 @@ hex.workspace = true
 rand_core.workspace = true
 rustls.workspace = true
 rustls-rustcrypto.workspace = true
+
+t3zktls-core.workspace = true

@@ -1,9 +1,6 @@
 use std::io::{Read, Result, Write};
 
-enum TypedData {
-    Incoming(Vec<u8>),
-    Outgoing(Vec<u8>),
-}
+use t3zktls_core::TypedData;
 
 pub struct ReplayStream {
     replay_data: Vec<TypedData>,
@@ -16,20 +13,11 @@ impl ReplayStream {
         let mut replay_data = Vec::new();
 
         while offset < data.len() {
-            let forward = data[offset];
-            offset += 1;
+            let typed_data = TypedData::from_bytes(&data[offset..]).unwrap();
 
-            let length = u32::from_be_bytes(data[offset..offset + 4].try_into().unwrap());
-            offset += 4;
+            offset += typed_data.length();
 
-            let data = data[offset..offset + length as usize].to_vec();
-            offset += length as usize;
-
-            match forward {
-                1 => replay_data.push(TypedData::Incoming(data)),
-                2 => replay_data.push(TypedData::Outgoing(data)),
-                _ => panic!("Invalid forward value"),
-            }
+            replay_data.push(typed_data);
         }
 
         ReplayStream {
