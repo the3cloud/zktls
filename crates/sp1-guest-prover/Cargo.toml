@@ -17,7 +17,6 @@ tokio = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true }
-hex = { workspace = true }
 
 [features]
 default = []

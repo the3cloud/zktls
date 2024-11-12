@@ -54,8 +54,6 @@ impl RngCore for RecordableRng {
 fn append_bytes(bytes: &[u8]) -> std::io::Result<()> {
     let mut random = RANDOM.write().unwrap();
 
-    println!("bytes: {:?}, len: {}", hex::encode(bytes), bytes.len());
-
     random.extend_from_slice(bytes);
 
     Ok(())

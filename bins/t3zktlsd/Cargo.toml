@@ -1,0 +1,10 @@
+[package]
+name = "t3zktlsd"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+clap = { workspace = true }
+anyhow = { workspace = true }
+
+tokio = { workspace = true }

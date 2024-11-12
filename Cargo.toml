@@ -10,17 +10,15 @@ members = [
     "crates/listeners",
     "crates/input-builder",
     "crates/sp1-guest-prover",
+    "crates/submiter",
 
     "crates/prover",
 
     "program/libs/tls",
     "program/libs/replayable-tls",
 
-    "program/guest", "crates/submiter",
-
-    # "bins/input-generator",
-    # "bins/bundler",
-    # "crates/guest-prover",
+    "program/guest",
+    "bins/t3zktlsd",
 ]
 
 exclude = ["program/sp1/tls-sp1", "program/risc0/tls-r0"]
@@ -35,7 +33,6 @@ anyhow = "1.0.91"
 log = "0.4.22"
 env_logger = "0.11.5"
 
-hex = "0.4.3"
 serde = { version = "1.0.214", default-features = false, features = [
     "alloc",
     "derive",
@@ -65,8 +62,6 @@ k256 = "0.13.4"
 aes-gcm = { version = "0.10.3", default-features = false }
 sha2 = "0.10.8"
 
-tempfile = "3.13.0"
-
 regex = "1.11.1"
 lru = "0.12.5"
 
@@ -74,3 +69,5 @@ xrust = "1.2.0"
 jsonpath-rust = "0.7.3"
 
 serde_json = "1.0.132"
+
+clap = { version = "4.5.20", features = ["derive"] }
