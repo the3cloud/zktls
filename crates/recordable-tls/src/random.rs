@@ -39,7 +39,7 @@ impl RngCore for RecordableRng {
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         OsRng.fill_bytes(dest);
 
-        append_bytes_to_file(dest).unwrap();
+        append_bytes(dest).unwrap();
     }
 
     /// Attempts to fill the given byte slice with random bytes.
@@ -51,8 +51,10 @@ impl RngCore for RecordableRng {
     }
 }
 
-fn append_bytes_to_file(bytes: &[u8]) -> std::io::Result<()> {
+fn append_bytes(bytes: &[u8]) -> std::io::Result<()> {
     let mut random = RANDOM.write().unwrap();
+
+    println!("bytes: {:?}, len: {}", hex::encode(bytes), bytes.len());
 
     random.extend_from_slice(bytes);
 

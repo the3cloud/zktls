@@ -1,5 +1,6 @@
 use anyhow::Result;
 
+#[derive(Debug, PartialEq, Eq)]
 pub enum TypedData {
     Incoming(Vec<u8>),
     Outgoing(Vec<u8>),
@@ -15,20 +16,18 @@ impl TypedData {
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let mut offset = 0;
+        let forward = bytes[0];
 
-        let forward = bytes[offset];
-        offset += 1;
+        let length_bytes = bytes[1..5].try_into()?;
 
-        let length = u32::from_be_bytes(bytes[offset..offset + 4].try_into()?) as usize;
-        offset += 4;
+        let length = u32::from_be_bytes(length_bytes) as usize;
 
         log::debug!("forward: {}, length: {}", forward, length);
 
         if forward == 1 {
-            Ok(Self::Incoming(bytes[offset..offset + length].to_vec()))
+            Ok(Self::Incoming(bytes[5..5 + length].to_vec()))
         } else if forward == 2 {
-            Ok(Self::Outgoing(bytes[offset..offset + length].to_vec()))
+            Ok(Self::Outgoing(bytes[5..5 + length].to_vec()))
         } else {
             Err(anyhow::anyhow!("Invalid forward value"))
         }
@@ -37,14 +36,19 @@ impl TypedData {
     pub fn to_bytes(&self) -> Vec<u8> {
         match self {
             Self::Incoming(data) => {
+                let length = data.len() as u32;
+
                 let mut bytes = vec![1];
-                bytes.extend_from_slice(&data.len().to_be_bytes());
+                bytes.extend_from_slice(&length.to_be_bytes());
                 bytes.extend_from_slice(data);
                 bytes
             }
             Self::Outgoing(data) => {
+                
+                let length = data.len() as u32;
+
                 let mut bytes = vec![2];
-                bytes.extend_from_slice(&data.len().to_be_bytes());
+                bytes.extend_from_slice(&length.to_be_bytes());
                 bytes.extend_from_slice(data);
                 bytes
             }
@@ -56,5 +60,23 @@ impl TypedData {
             Self::Incoming(data) => data.len() + 5,
             Self::Outgoing(data) => data.len() + 5,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::TypedData;
+
+    #[test]
+    fn test_typed_data() {
+        let _ = env_logger::builder().is_test(true).try_init();
+
+        let typed_data = TypedData::new_incoming(vec![1, 2, 3, 4]);
+
+        let encoded = typed_data.to_bytes();
+
+        let decoded = TypedData::from_bytes(&encoded).unwrap();
+
+        assert_eq!(typed_data, decoded);
     }
 }
