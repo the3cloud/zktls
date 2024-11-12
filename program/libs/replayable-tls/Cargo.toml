@@ -11,4 +11,7 @@ rustls-rustcrypto.workspace = true
 webpki-roots.workspace = true
 rand_core.workspace = true
 bytes.workspace = true
-hex.workspace = true
+log.workspace = true
+
+t3zktls-core.workspace = true
+

@@ -15,6 +15,10 @@ anyhow = { workspace = true }
 
 tokio = { workspace = true }
 
+[dev-dependencies]
+tokio = { workspace = true }
+hex = { workspace = true }
+
 [features]
 default = []
 cuda = ["sp1-sdk/cuda"]

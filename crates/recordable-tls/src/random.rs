@@ -1,30 +1,12 @@
 use rand_core::{CryptoRng, OsRng, RngCore};
 use rustls_rustcrypto::GeneratedRng;
-use std::{
-    fs::OpenOptions,
-    io::Write,
-    path::{Path, PathBuf},
-};
 
 use std::sync::RwLock;
 
-static RANDOM: RwLock<Option<PathBuf>> = RwLock::new(None);
+static RANDOM: RwLock<Vec<u8>> = RwLock::new(Vec::new());
 
-/// Sets the predefined sequence of random bytes to be used by the `ReplayableRng`.
-///
-/// This function initializes the global `RANDOM` `OnceCell` with the provided vector of bytes.
-/// It should be called before any use of `ReplayableRng` to ensure deterministic behavior.
-///
-/// # Arguments
-///
-/// * `random` - A `Vec<u8>` containing the sequence of random bytes to be used.
-///
-/// # Panics
-///
-/// This function will panic if it's called more than once, as `OnceCell::set` returns an error
-/// if the cell has already been initialized.
-pub fn set_random_path<P: AsRef<Path>>(random: P) {
-    *RANDOM.write().unwrap() = Some(random.as_ref().to_path_buf());
+pub fn random() -> Vec<u8> {
+    RANDOM.read().unwrap().clone()
 }
 
 /// A replayable random number generator that uses a predefined sequence of random bytes.
@@ -57,7 +39,7 @@ impl RngCore for RecordableRng {
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         OsRng.fill_bytes(dest);
 
-        append_bytes_to_file(dest).unwrap();
+        append_bytes(dest).unwrap();
     }
 
     /// Attempts to fill the given byte slice with random bytes.
@@ -69,14 +51,12 @@ impl RngCore for RecordableRng {
     }
 }
 
-fn append_bytes_to_file(bytes: &[u8]) -> std::io::Result<()> {
-    let path = RANDOM.read().unwrap();
+fn append_bytes(bytes: &[u8]) -> std::io::Result<()> {
+    let mut random = RANDOM.write().unwrap();
 
-    let pp = path.as_ref().unwrap();
+    println!("bytes: {:?}, len: {}", hex::encode(bytes), bytes.len());
 
-    let mut file = OpenOptions::new().create(true).append(true).open(pp)?;
-
-    file.write_all(bytes)?;
+    random.extend_from_slice(bytes);
 
     Ok(())
 }
