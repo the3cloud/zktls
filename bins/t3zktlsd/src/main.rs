@@ -6,6 +6,8 @@ mod config;
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    env_logger::init();
+
     let cmd = commands::Cmd::parse();
     cmd.execute().await
 }

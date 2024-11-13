@@ -1,0 +1,26 @@
+[listener]
+# which gateway need to listen
+gateway_address = "0x0000000000000000000000000000000000000000"
+# begin number of block
+begin_block_number = 0
+# batch size of block
+block_number_batch_size = 1000
+# ID of this prover
+prover_id = "0x0000000000000000000000000000000000000000000000000000000000000000"
+
+[input_builder]
+# set regex cache size
+regex_cache_size = 300
+
+[submiter]
+# set transaction confirmations
+confirmations = 1
+# which gateway need to submit
+gateway_address = "0x0000000000000000000000000000000000000000"
+
+[prover]
+# set pull block interval, in seconds.
+sleep_duration = 5
+# `loop_number` just used to debug.
+# loop_number = 100
+rpc_url = ""

@@ -17,5 +17,8 @@ t3zktls-submiter-ethereum = { workspace = true }
 t3zktls-prover = { workspace = true }
 t3zktls-kms-local = { workspace = true }
 
-alloy = { workspace = true, features = ["signers", "signer-local", "providers", "reqwest"]}
-toml = "0.8.19"
+alloy = { workspace = true, features = ["signers", "signer-local", "providers", "reqwest", "getrandom"]}
+toml = { workspace = true }
+
+env_logger = { workspace = true}
+toml_edit = { workspace = true }

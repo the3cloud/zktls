@@ -1,7 +1,7 @@
 use alloy::primitives::{Address, B256};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 /// Configuration for the ZkTLS Gateway listener
 pub struct Config {
     /// The Ethereum address of the ZkTLS Gateway contract

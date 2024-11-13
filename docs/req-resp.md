@@ -22,4 +22,6 @@ After above fields, also have some repeated segment of request body:
 - data: The data of request segment.
 - isEncrypted: Whether this part of data is encrypted.
 
+### Request Hash
+
 ### Template Request Body
