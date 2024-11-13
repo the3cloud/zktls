@@ -20,8 +20,8 @@ library RequestHashLib {
         string memory serverName,
         bytes memory encryptedKey,
         bytes32 requestTemplateHash,
-        uint64[] memory fieldOffsets,
-        bytes[] memory fieldValues
+        uint64[] memory fields,
+        bytes[] memory values
     ) public pure returns (bytes32) {
         bytes32 request_hash = keccak256(
             abi.encode(
@@ -29,8 +29,8 @@ library RequestHashLib {
                 serverName,
                 encryptedKey,
                 requestTemplateHash,
-                fieldOffsets,
-                fieldValues
+                fields,
+                values
             )
         );
 

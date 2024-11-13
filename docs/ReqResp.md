@@ -1,5 +1,7 @@
 # Request and Response Model
 
+Due to contract limitations, zkTLS cannot process TLS in a streaming manner, so zkTLS use a Request/Response model.
+
 ## Request and Template
 
 Requests are allowed in two ways: original request body and template request body.
@@ -73,8 +75,8 @@ function computeTemplateRequestHash(
     string memory serverName,
     bytes memory encryptedKey,
     bytes32 requestTemplateHash,
-    uint64[] memory fieldOffsets,
-    bytes[] memory fieldValues
+    uint64[] memory fields,
+    bytes[] memory values
 ) public pure returns (bytes32) {
     bytes32 request_hash = keccak256(
         abi.encode(
@@ -82,8 +84,8 @@ function computeTemplateRequestHash(
             serverName,
             encryptedKey,
             requestTemplateHash,
-            fieldOffsets,
-            fieldValues
+            fields,
+            values
         )
     );
 
