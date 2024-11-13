@@ -55,6 +55,9 @@ t3zktls-recordable-tls = { path = "crates/recordable-tls", version = "0.1.0" }
 t3zktls-core = { path = "core", version = "0.1.0" }
 t3zktls-replayable-tls = { path = "program/libs/replayable-tls", version = "0.1.0" }
 t3zktls-program = { path = "program/guest", version = "0.1.0", default-features = false }
+t3zktls-sp1-guest-prover = { path = "crates/sp1-guest-prover", version = "0.1.0" }
+t3zktls-submiter-ethereum = { path = "crates/submiter", version = "0.1.0" }
+t3zktls-prover = { path = "crates/prover", version = "0.1.0" }
 
 tokio = "1.41.0"
 

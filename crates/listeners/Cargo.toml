@@ -11,6 +11,8 @@ log.workspace = true
 t3zktls-core.workspace = true
 t3zktls-contracts-ethereum.workspace = true
 
+serde = { workspace = true }
+
 [dev-dependencies]
 alloy = { workspace = true, features = ["provider-anvil-node"] }
 env_logger = { workspace = true }
