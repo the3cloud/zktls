@@ -32,7 +32,6 @@ pub struct ZkTLSListener<P, D, T, N> {
     block_number_batch_size: u64,
 
     decryptor: D,
-
     _marker: std::marker::PhantomData<(T, N)>,
 }
 

@@ -5,7 +5,6 @@ edition.workspace = true
 
 [dependencies]
 once_cell.workspace = true
-hex.workspace = true
 
 rand_core.workspace = true
 rustls.workspace = true

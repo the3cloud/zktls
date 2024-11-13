@@ -1,6 +1,5 @@
 {
     "rust-analyzer.linkedProjects": [
-        // "./bins/input-generator/Cargo.toml",
         "./program/guest/Cargo.toml",
         "./program/guest/tls-r0/Cargo.toml",
     ],

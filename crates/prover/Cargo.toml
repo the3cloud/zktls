@@ -8,3 +8,4 @@ anyhow = { workspace = true }
 t3zktls-core = { workspace = true }
 
 tokio = { workspace = true }
+serde = { workspace = true }

@@ -1,4 +1,7 @@
-pub struct ProverConfig {
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct Config {
     /// The duration to sleep between each polling cycle (in seconds)
     pub sleep_duration: u64,
 

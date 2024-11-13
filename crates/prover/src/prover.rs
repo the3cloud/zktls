@@ -3,32 +3,26 @@ use std::time::Duration;
 use anyhow::Result;
 use t3zktls_core::{GuestProver, InputBuilder, Listener, ProveResponse, Submiter};
 
-use crate::ProverConfig;
+use crate::Config;
 
 pub struct ZkTLSProver<L, I, G, S> {
     listener: L,
     input_builder: I,
-    guest_prover: G,
+    guest: G,
     submitter: S,
 
-    config: ProverConfig,
+    config: Config,
 
     loop_number: u64,
 }
 
 impl<L, I, G, S> ZkTLSProver<L, I, G, S> {
-    pub fn new(
-        config: ProverConfig,
-        listener: L,
-        input_builder: I,
-        guest_prover: G,
-        submitter: S,
-    ) -> Self {
+    pub fn new(config: Config, listener: L, input_builder: I, guest: G, submitter: S) -> Self {
         Self {
             config,
             listener,
             input_builder,
-            guest_prover,
+            guest,
             submitter,
 
             loop_number: 0,
@@ -52,7 +46,7 @@ where
 
                 let input = self.input_builder.build_input(request).await?;
 
-                let (output, proof) = self.guest_prover.prove(input).await?;
+                let (output, proof) = self.guest.prove(input).await?;
 
                 self.submitter
                     .submit(ProveResponse {

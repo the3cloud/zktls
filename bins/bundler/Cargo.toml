@@ -1,6 +1,0 @@
-[package]
-name = "t3zktls-bundler"
-version.workspace = true
-edition.workspace = true
-
-[dependencies]

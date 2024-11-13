@@ -65,9 +65,6 @@ mod tests {
 
         let mut prover = SP1GuestProver::default().mock();
 
-        let (guest_output, proof) = prover.prove(guest_input).await.unwrap();
-
-        println!("{:?}", guest_output);
-        println!("{:?}", hex::encode(proof));
+        let (_guest_output, _proof) = prover.prove(guest_input).await.unwrap();
     }
 }
