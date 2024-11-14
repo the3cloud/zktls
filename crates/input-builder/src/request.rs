@@ -34,7 +34,9 @@ pub fn request_tls_call(request: GuestInputRequest) -> Result<GuestInputResponse
 
     let mut tls = rustls::Stream::new(&mut tls_stream, &mut recordable_stream);
 
-    tls.write_all(&request.data)?;
+    let request_data = request.request.data()?;
+
+    tls.write_all(&request_data)?;
 
     let mut buf = Vec::new();
     tls.read_to_end(&mut buf)?;
@@ -63,7 +65,7 @@ pub fn request_tls_call(request: GuestInputRequest) -> Result<GuestInputResponse
 #[cfg(test)]
 mod tests {
 
-    use t3zktls_core::GuestInput;
+    use t3zktls_core::{GuestInput, Request};
 
     use super::*;
 
@@ -76,7 +78,7 @@ mod tests {
         let request = GuestInputRequest {
             url: url.to_string(),
             server_name: server_name.to_string(),
-            data: data.to_vec(),
+            request: Request::new_original(data.to_vec()),
         };
 
         let res = request_tls_call(request.clone())?;

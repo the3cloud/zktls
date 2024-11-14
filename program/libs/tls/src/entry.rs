@@ -5,7 +5,7 @@ use crate::request;
 pub fn entry(input: &[u8]) -> Vec<u8> {
     let input: GuestInput = ciborium::from_reader(input).expect("Failed to parse input from cbor");
 
-    let res = request::execute(input.request, input.response);
+    let res = entry_input(input);
 
     let mut result_bytes = Vec::new();
 
@@ -15,6 +15,7 @@ pub fn entry(input: &[u8]) -> Vec<u8> {
 }
 
 pub fn entry_input(input: GuestInput) -> GuestOutput {
+    // println!("input: {:?}", input);
     request::execute(input.request, input.response)
 }
 
@@ -28,8 +29,8 @@ mod tests {
 
         let input_bytes = include_bytes!("../testdata/guest_input0.cbor");
 
-        let output = entry(input_bytes);
+        let _output = entry(input_bytes);
 
-        println!("{:?}", output);
+        // println!("{:?}", output);
     }
 }

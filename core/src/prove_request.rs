@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OriginalRequest {
-    pub data: Bytes,
+    pub data: Vec<u8>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -25,20 +25,26 @@ pub enum Request {
 }
 
 impl Request {
-    pub fn data(self) -> Result<Bytes> {
+    pub fn new_original(data: Vec<u8>) -> Self {
+        Self::Original(OriginalRequest { data })
+    }
+}
+
+impl Request {
+    pub fn data(&self) -> Result<Bytes> {
         match self {
-            Request::Original(req) => Ok(req.data),
+            Request::Original(req) => Ok(req.data.clone().into()),
             Request::Template(req) => {
                 let template = req.template.clone();
 
                 let mut bytes = BytesMut::new();
-                for (idx, field) in req.fields {
+                for (idx, field) in &req.fields {
                     let append_bytes = template
-                        .get(..idx as usize)
+                        .get(..*idx as usize)
                         .ok_or(anyhow!("index out of bounds"))?;
 
-                    bytes.put(append_bytes);
-                    bytes.put(field);
+                    bytes.put_slice(append_bytes);
+                    bytes.put_slice(field);
                 }
                 Ok(bytes.freeze().into())
             }

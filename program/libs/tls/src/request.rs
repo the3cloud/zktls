@@ -35,7 +35,9 @@ pub fn execute(request: GuestInputRequest, response: GuestInputResponse) -> Gues
 
     let mut tls = rustls::Stream::new(&mut tls_stream, &mut stream);
 
-    tls.write_all(&request.data).expect("Failed to write data");
+    let request_data = request.request.data().expect("Failed to get request data");
+
+    tls.write_all(&request_data).expect("Failed to write data");
 
     let mut buf = Vec::new();
     tls.read_to_end(&mut buf).expect("Failed to read data");

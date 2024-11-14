@@ -1,13 +1,15 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+use crate::prove_request::Request;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GuestInputRequest {
     pub url: String,
-    pub data: Vec<u8>,
     pub server_name: String,
+    pub request: Request,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GuestInputResponse {
     pub time: String,
     pub stream: Vec<u8>,
@@ -17,13 +19,13 @@ pub struct GuestInputResponse {
     pub filtered_responses: Vec<FilteredResponse>,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GuestInput {
     pub request: GuestInputRequest,
     pub response: GuestInputResponse,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GuestOutput {
     pub response_data: Vec<u8>,
     pub request_hash: [u8; 32],
