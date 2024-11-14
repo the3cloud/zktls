@@ -41,6 +41,8 @@ pub fn request_tls_call(request: GuestInputRequest) -> Result<GuestInputResponse
     let mut buf = Vec::new();
     tls.read_to_end(&mut buf)?;
 
+    recordable_stream.flush()?;
+
     let random = t3zktls_recordable_tls::random();
     let time = time_provider
         .time()
