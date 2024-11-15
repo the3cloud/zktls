@@ -1,3 +1,4 @@
+use alloy::primitives::Bytes;
 use serde::{Deserialize, Serialize};
 
 use crate::prove_request::Request;
@@ -7,6 +8,7 @@ pub struct GuestInputRequest {
     pub url: String,
     pub server_name: String,
     pub request: Request,
+    pub encrypted_key: Bytes,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

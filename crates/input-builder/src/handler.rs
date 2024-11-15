@@ -35,6 +35,7 @@ impl TLSInputBuilder {
             url: req.remote,
             server_name: req.server_name,
             request: req.request,
+            encrypted_key: req.encrypted_key,
         };
 
         let guest_input_request_cloned = guest_input_request.clone();
@@ -154,13 +155,10 @@ mod tests {
 
         let input = builder.handle_request_tls_call(req).await.unwrap();
 
-        // println!("response stream: {}", hex::encode(&input.response.stream));
-        // println!(
-        //     "response response: {}",
-        //     hex::encode(&input.response.response)
-        // );
-        // println!("response random: {}", hex::encode(&input.response.random));
-        // println!("response: {}", input.response.time);
+        println!(
+            "response: {}",
+            String::from_utf8(input.response.response.clone()).unwrap()
+        );
 
         let mut guest_input_bytes = Vec::new();
         ciborium::ser::into_writer(&input, &mut guest_input_bytes).unwrap();
@@ -168,23 +166,23 @@ mod tests {
         fs::write("../../target/guest_input0.cbor", guest_input_bytes).unwrap();
     }
 
-    #[tokio::test]
-    async fn test_handle_response2() {
-        let bytes = include_bytes!("../testdata/req1.cbor");
+    // #[tokio::test]
+    // async fn test_handle_response2() {
+    //     let bytes = include_bytes!("../testdata/req1.cbor");
 
-        let req: ProveRequest = ciborium::from_reader(bytes.as_slice()).unwrap();
+    //     let req: ProveRequest = ciborium::from_reader(bytes.as_slice()).unwrap();
 
-        let config = Config {
-            regex_cache_size: 100,
-        };
+    //     let config = Config {
+    //         regex_cache_size: 100,
+    //     };
 
-        let mut builder = TLSInputBuilder::new(config).unwrap();
+    //     let mut builder = TLSInputBuilder::new(config).unwrap();
 
-        let input = builder.handle_request_tls_call(req).await.unwrap();
+    //     let input = builder.handle_request_tls_call(req).await.unwrap();
 
-        let mut guest_input_bytes = Vec::new();
-        ciborium::ser::into_writer(&input, &mut guest_input_bytes).unwrap();
+    //     let mut guest_input_bytes = Vec::new();
+    //     ciborium::ser::into_writer(&input, &mut guest_input_bytes).unwrap();
 
-        fs::write("../../target/guest_input1.cbor", guest_input_bytes).unwrap();
-    }
+    //     fs::write("../../target/guest_input1.cbor", guest_input_bytes).unwrap();
+    // }
 }
