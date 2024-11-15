@@ -41,13 +41,7 @@ pub fn request_tls_call(request: GuestInputRequest) -> Result<GuestInputResponse
     tls.write_all(&request_data)?;
 
     let mut buf = Vec::new();
-    let res = tls.read_to_end(&mut buf);
-
-    if let Err(e) = res {
-        if e.kind() != std::io::ErrorKind::UnexpectedEof {
-            return Err(anyhow::anyhow!("TLS read error: {:?}", e));
-        }
-    }
+    tls.read_to_end(&mut buf)?;
 
     recordable_stream.flush()?;
 

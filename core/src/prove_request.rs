@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use alloy::primitives::{
-    bytes::{Buf, BufMut, BytesMut},
+    bytes::{BufMut, BytesMut},
     Bytes, B256,
 };
 use anyhow::{anyhow, Result};
@@ -38,24 +38,32 @@ impl Request {
         match self {
             Request::Original(req) => Ok(req.data.clone().into()),
             Request::Template(req) => {
-                let mut template = req.template.clone();
+                let template = &req.template;
 
                 let mut ordered_fields = BTreeMap::new();
                 for (idx, field) in req.offsets.iter().zip(&req.fields) {
                     ordered_fields.insert(*idx, field);
                 }
 
+                let mut offset = 0;
+
                 let mut bytes = BytesMut::new();
                 for (idx, field) in ordered_fields {
                     let append_bytes = template
-                        .get(..idx as usize)
-                        .ok_or(anyhow!("index out of bounds"))?;
+                        .get(offset..idx as usize)
+                        .ok_or(anyhow!("index out of bounds in template fields"))?;
 
                     bytes.put_slice(append_bytes);
                     bytes.put_slice(field);
 
-                    template.advance(idx as usize);
+                    offset = idx as usize;
                 }
+
+                bytes.put_slice(
+                    template
+                        .get(offset..)
+                        .ok_or(anyhow!("index out of bounds in template"))?,
+                );
                 Ok(bytes.freeze().into())
             }
         }
