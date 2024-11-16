@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use alloy::primitives::{
     bytes::{BufMut, BytesMut},
     Bytes, B256,
@@ -64,7 +62,11 @@ where
 
         self.remote = Some(log.remote);
         self.server_name = Some(log.serverName);
-        self.encrypted_key = Some(log.encryptedKey);
+        self.encrypted_key = if log.encryptedKey.is_empty() {
+            None
+        } else {
+            Some(log.encryptedKey)
+        };
         self.max_response_size = log.maxResponseSize;
         self.request_template_id = Some(log.requestTemplateHash);
         self.response_template_id = Some(log.responseTemplateHash);
@@ -83,10 +85,13 @@ where
         Ok(())
     }
 
-    pub fn add_request_template(&mut self, template: &Bytes) -> Result<()> {
+    pub fn add_request_template(&mut self, template_hash: B256, template: &Bytes) -> Result<()> {
         let template_request = TemplateRequest {
+            template_hash,
             template: t3zktls_core::template::parse_request_template(template.clone())?,
-            fields: HashMap::new(),
+            offsets: Vec::new(),
+            fields: Vec::new(),
+            unencrypted_offset: 0,
         };
 
         self.template_request = Some(template_request);
@@ -160,7 +165,8 @@ where
         };
 
         if let Some(template_request) = &mut self.template_request {
-            template_request.fields.insert(log.field, append_data);
+            template_request.offsets.push(log.field);
+            template_request.fields.push(append_data);
         } else {
             return Err(anyhow::anyhow!("request is not a template"));
         }
@@ -190,6 +196,7 @@ where
             server_name: self
                 .server_name
                 .ok_or(anyhow::anyhow!("server name is not set"))?,
+            encrypted_key: self.encrypted_key.unwrap_or_default(),
             max_response_size: self.max_response_size,
             response_template_id: self
                 .response_template_id

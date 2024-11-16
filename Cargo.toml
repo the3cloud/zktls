@@ -77,3 +77,5 @@ clap = { version = "4.5.20", features = ["derive"] }
 
 toml = "0.8.19"
 toml_edit = "0.22.22"
+
+# hex = "0.4.3"

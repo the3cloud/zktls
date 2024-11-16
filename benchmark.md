@@ -25,6 +25,6 @@
 
 > 1: Intel(R) Xeon(R) Platinum 8369B CPU @ 2.90GHz
 >
-> 2: Intel(R) Xeon(R) Platinum 8163 CPU @ 2.50GHz】
+> 2: Intel(R) Xeon(R) Platinum 8163 CPU @ 2.50GHz
 >
 > 3: Intel(R) Xeon(R) Platinum 8255C CPU @ 2.50GHz

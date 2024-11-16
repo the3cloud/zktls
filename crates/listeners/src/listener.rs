@@ -212,7 +212,8 @@ where
 
                         let request_template_data = request_template.input();
 
-                        builder.add_request_template(request_template_data)?;
+                        builder
+                            .add_request_template(request_template_hash, request_template_data)?;
                     }
 
                     if response_template_hash != B256::ZERO {
@@ -256,6 +257,7 @@ mod tests {
     use std::fs;
 
     use alloy::{
+        hex::FromHex,
         primitives::{
             bytes::{BufMut, BytesMut},
             Bytes, B256,
@@ -311,11 +313,11 @@ mod tests {
             .requestTLSCallSegment(
                 "httpbin.org:443".into(),
                 "httpbin.org".into(),
-                Bytes::new(),
+                Bytes::from_hex("0x01").unwrap(),
                 vec![
                     b"GET /get HTTP/1.1\r\n".to_vec().into(),
                     b"Host: httpbin.org\r\n".to_vec().into(),
-                    b"Connection: close\r\n\r\n".to_vec().into(),
+                    b"Connection: Close\r\n\r\n".to_vec().into(),
                 ],
             )
             .send()
@@ -369,8 +371,8 @@ mod tests {
                 response_template_hash,
                 "httpbin.org:443".into(),
                 "httpbin.org".into(),
-                Bytes::new(),
-                vec![27, 43],
+                Bytes::from_hex("0x01").unwrap(),
+                vec![25, 39],
                 vec!["httpbin.org".into(), "Close".into()],
             )
             .send()

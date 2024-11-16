@@ -34,7 +34,8 @@ impl TLSInputBuilder {
         let guest_input_request = GuestInputRequest {
             url: req.remote,
             server_name: req.server_name,
-            data: req.request.data()?.to_vec(),
+            request: req.request,
+            encrypted_key: req.encrypted_key,
         };
 
         let guest_input_request_cloned = guest_input_request.clone();
@@ -153,6 +154,11 @@ mod tests {
         let mut builder = TLSInputBuilder::new(config).unwrap();
 
         let input = builder.handle_request_tls_call(req).await.unwrap();
+
+        println!(
+            "response: {}",
+            String::from_utf8(input.response.response.clone()).unwrap()
+        );
 
         let mut guest_input_bytes = Vec::new();
         ciborium::ser::into_writer(&input, &mut guest_input_bytes).unwrap();

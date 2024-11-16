@@ -19,7 +19,7 @@ pub struct Cmd {
 
 impl Cmd {
     pub async fn execute(self) -> Result<()> {
-        let prover_id = B256::random();
+        let prover_id: alloy::primitives::FixedBytes<32> = B256::random();
 
         let config_str = include_str!("../../assets/config.toml");
 
