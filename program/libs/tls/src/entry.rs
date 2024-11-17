@@ -1,3 +1,4 @@
+use alloy::sol_types::SolValue;
 use t3zktls_core::{GuestInput, GuestOutput};
 
 use crate::request;
@@ -5,18 +6,17 @@ use crate::request;
 pub fn entry(input: &[u8]) -> Vec<u8> {
     let input: GuestInput = ciborium::from_reader(input).expect("Failed to parse input from cbor");
 
-    let res = entry_input(input);
-
-    let mut result_bytes = Vec::new();
-
-    ciborium::into_writer(&res, &mut result_bytes).expect("Failed to serialize output to cbor");
-
-    result_bytes
+    entry_input(input)
 }
 
-pub fn entry_input(input: GuestInput) -> GuestOutput {
+pub fn entry_input(input: GuestInput) -> Vec<u8> {
     // println!("input: {:?}", input);
-    request::execute(input.request, input.response)
+    let GuestOutput {
+        response_data,
+        request_hash,
+    } = request::execute(input.request, input.response);
+
+    (request_hash, response_data).abi_encode()
 }
 
 #[cfg(test)]
