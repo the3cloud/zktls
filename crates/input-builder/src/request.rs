@@ -1,6 +1,7 @@
 use std::{
     io::{Read, Write},
     net::TcpStream,
+    panic,
     sync::Arc,
 };
 
@@ -10,6 +11,13 @@ use t3zktls_core::{GuestInputRequest, GuestInputResponse};
 use t3zktls_recordable_tls::{crypto_provider, time_provider, RecordableStream};
 
 pub fn request_tls_call(request: GuestInputRequest) -> Result<GuestInputResponse> {
+    let res = panic::catch_unwind(move || _request_tls_call(request))
+        .map_err(|e| anyhow::anyhow!("{:?}", e))??;
+
+    Ok(res)
+}
+
+fn _request_tls_call(request: GuestInputRequest) -> Result<GuestInputResponse> {
     let stream = TcpStream::connect(&request.url)?;
     let mut recordable_stream = RecordableStream::new(stream);
 
