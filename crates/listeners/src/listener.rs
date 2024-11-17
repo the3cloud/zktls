@@ -14,9 +14,7 @@ use alloy::{
     transports::Transport,
 };
 use anyhow::{anyhow, Result};
-use t3zktls_contracts_ethereum::IZkTLSGateway::{
-    RequestTLSCallBegin, RequestTLSCallSegment, RequestTLSCallTemplateField,
-};
+use t3zktls_contracts_ethereum::IZkTLSGateway::{RequestTLSCallBegin, RequestTLSCallTemplateField};
 use t3zktls_core::{Listener, ProveRequest, TLSDataDecryptorGenerator};
 
 use crate::{Config, RequestBuilder};
@@ -108,7 +106,6 @@ where
 
         let topics = vec![
             RequestTLSCallBegin::SIGNATURE_HASH,
-            RequestTLSCallSegment::SIGNATURE_HASH,
             RequestTLSCallTemplateField::SIGNATURE_HASH,
         ];
 
@@ -229,10 +226,6 @@ where
                     }
 
                     builder.add_request_from_begin_logs(decoded)?;
-                }
-                RequestTLSCallSegment::SIGNATURE_HASH => {
-                    let decoded = RequestTLSCallSegment::decode_log_data(log.data(), false)?;
-                    builder.add_request_from_segment_logs(decoded).await?;
                 }
                 RequestTLSCallTemplateField::SIGNATURE_HASH => {
                     let decoded = RequestTLSCallTemplateField::decode_log_data(log.data(), false)?;
@@ -372,10 +365,5 @@ mod tests {
         ciborium::ser::into_writer(&res[0], &mut req0_bytes).unwrap();
 
         fs::write("../../target/req0.cbor", req0_bytes).unwrap();
-
-        let mut req1_bytes = Vec::new();
-        ciborium::ser::into_writer(&res[1], &mut req1_bytes).unwrap();
-
-        fs::write("../../target/req1.cbor", req1_bytes).unwrap();
     }
 }

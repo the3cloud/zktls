@@ -68,9 +68,6 @@ fn compute_request_hash(
     request: Request,
 ) -> [u8; 32] {
     match request {
-        Request::Original(original_request) => {
-            compute_original_request_hash(remote, server_name, original_request.data)
-        }
         Request::Template(template_request) => compute_template_request_hash(
             remote,
             server_name,
@@ -80,16 +77,6 @@ fn compute_request_hash(
             &template_request.fields[..template_request.unencrypted_offset as usize],
         ),
     }
-}
-
-fn compute_original_request_hash(
-    remote: String,
-    server_name: String,
-    request: Vec<u8>,
-) -> [u8; 32] {
-    let data = (remote, server_name, request);
-
-    keccak256(data.abi_encode()).into()
 }
 
 fn compute_template_request_hash(

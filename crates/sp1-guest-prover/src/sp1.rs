@@ -1,3 +1,7 @@
+use alloy::{
+    primitives::{Bytes, B256},
+    sol_types::SolValue,
+};
 use anyhow::Result;
 use sp1_sdk::{ProverClient, SP1Stdin};
 use t3zktls_core::{GuestInput, GuestOutput, GuestProver};
@@ -46,10 +50,20 @@ pub fn prove(client: &ProverClient, input: GuestInput) -> Result<(GuestOutput, V
     let output = prover_output.public_values.to_vec();
     let proof = prover_output.bytes();
 
-    let guest_output: GuestOutput = ciborium::from_reader(&mut output.as_slice())?;
+    let (request_hash, response_data) = GuestOutputABIType::abi_decode(&output, false)?;
 
-    Ok((guest_output, proof))
+    // let guest_output: GuestOutput = ciborium::from_reader(&mut output.as_slice())?;
+
+    Ok((
+        GuestOutput {
+            request_hash: request_hash.0,
+            response_data: response_data.into(),
+        },
+        proof,
+    ))
 }
+
+type GuestOutputABIType = (B256, Bytes);
 
 #[cfg(test)]
 mod tests {
