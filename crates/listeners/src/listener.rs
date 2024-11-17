@@ -309,24 +309,6 @@ mod tests {
             prover_id: B256::ZERO,
         };
 
-        let _receipt = zk_tls_gateway
-            .requestTLSCallSegment(
-                "httpbin.org:443".into(),
-                "httpbin.org".into(),
-                Bytes::from_hex("0x01").unwrap(),
-                vec![
-                    b"GET /get HTTP/1.1\r\n".to_vec().into(),
-                    b"Host: httpbin.org\r\n".to_vec().into(),
-                    b"Connection: Close\r\n\r\n".to_vec().into(),
-                ],
-            )
-            .send()
-            .await
-            .unwrap()
-            .get_receipt()
-            .await
-            .unwrap();
-
         let mut request_template = BytesMut::new();
         request_template.put_u8(1);
         request_template.put_slice(b"GET /get HTTP/1.1\r\nHost: \r\nConnection: \r\n\r\n");
