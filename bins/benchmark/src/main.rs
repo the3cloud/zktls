@@ -1,15 +1,19 @@
 use std::time::Instant;
 
-use t3zktls_core::{GuestInput, GuestInputRequest, GuestOutput};
+use t3zktls_core::{GuestInput, GuestInputRequest, GuestOutput, Request};
 
 fn build_input() -> GuestInput {
     let request = GuestInputRequest {
         url: "httpbin.org:443".to_string(),
-        data: b"GET /get HTTP/1.1\r\nHost: httpbin.org\r\nConnection: close\r\n\r\n".to_vec(),
+        // data: b"GET /get HTTP/1.1\r\nHost: httpbin.org\r\nConnection: close\r\n\r\n".to_vec(),
         server_name: "httpbin.org".to_string(),
+        encrypted_key: vec![].into(),
+        request: Request::new_original(
+            b"GET /get HTTP/1.1\r\nHost: httpbin.org\r\nConnection: close\r\n\r\n".to_vec(),
+        ),
     };
 
-    let response = t3zktls_input_builder::request_tls_call(&request).unwrap();
+    let response = t3zktls_input_builder::request_tls_call(request.clone()).unwrap();
 
     GuestInput { request, response }
 }
@@ -26,9 +30,6 @@ pub fn build_input_bytes() -> Vec<u8> {
 fn handle_output(guest_output: GuestOutput) {
     let response_data = String::from_utf8(guest_output.response_data).unwrap();
     println!("response_data: {}", response_data);
-
-    let input_hash = hex::encode(guest_output.request_hash);
-    println!("input_hash: {}", input_hash);
 }
 
 pub fn handle_output_bytes(output_bytes: &[u8]) {
@@ -43,7 +44,7 @@ fn main() {
 
     sp1_sdk::utils::setup_logger();
 
-    let client = ProverClient::new();
+    let client = ProverClient::mock();
 
     let mut stdin = SP1Stdin::new();
 
