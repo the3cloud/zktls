@@ -44,7 +44,7 @@ fn main() {
 
     sp1_sdk::utils::setup_logger();
 
-    let client = ProverClient::mock();
+    let client = ProverClient::new();
 
     let mut stdin = SP1Stdin::new();
 
