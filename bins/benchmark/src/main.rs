@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use t3zktls_core::{GuestInput, GuestInputRequest, GuestOutput, Request};
+use t3zktls_core::{GuestInput, GuestInputRequest, GuestOutput, Request, TemplateRequest};
 
 fn build_input() -> GuestInput {
     let request = GuestInputRequest {
@@ -8,9 +8,13 @@ fn build_input() -> GuestInput {
         // data: b"GET /get HTTP/1.1\r\nHost: httpbin.org\r\nConnection: close\r\n\r\n".to_vec(),
         server_name: "httpbin.org".to_string(),
         encrypted_key: vec![].into(),
-        request: Request::new_original(
-            b"GET /get HTTP/1.1\r\nHost: httpbin.org\r\nConnection: close\r\n\r\n".to_vec(),
-        ),
+        request: Request::Template(TemplateRequest {
+            template: b"GET /get HTTP/1.1\r\nHost: httpbin.org\r\nConnection: close\r\n\r\n".into(),
+            template_hash: Default::default(),
+            unencrypted_offset: 0,
+            offsets: vec![],
+            fields: vec![],
+        }),
     };
 
     let response = t3zktls_input_builder::request_tls_call(request.clone()).unwrap();

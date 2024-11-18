@@ -21,11 +21,6 @@ interface IZkTLSGateway {
         uint64 maxResponseSize
     );
 
-    /// @notice Event emitted when a TLS call segment is received.
-    /// @param data The data received.
-    /// @param isEncrypted Whether the data is encrypted.
-    event RequestTLSCallSegment(bytes32 indexed requestId, bytes data, bool isEncrypted);
-
     /// @notice Event emitted when a TLS call template field is received.
     /// @param requestId The ID of the request.
     /// @param field The field name.

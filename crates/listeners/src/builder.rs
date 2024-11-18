@@ -1,14 +1,9 @@
-use alloy::primitives::{
-    bytes::{BufMut, BytesMut},
-    Bytes, B256,
-};
+use alloy::primitives::{Bytes, B256};
 use anyhow::Result;
-use t3zktls_contracts_ethereum::IZkTLSGateway::{
-    RequestTLSCallBegin, RequestTLSCallSegment, RequestTLSCallTemplateField,
-};
+use t3zktls_contracts_ethereum::IZkTLSGateway::{RequestTLSCallBegin, RequestTLSCallTemplateField};
 use t3zktls_core::{
-    OriginalRequest, ProveRequest, Request, ResponseTemplate, TLSDataDecryptor,
-    TLSDataDecryptorGenerator, TemplateRequest,
+    ProveRequest, Request, ResponseTemplate, TLSDataDecryptor, TLSDataDecryptorGenerator,
+    TemplateRequest,
 };
 
 pub struct RequestBuilder<'a, D> {
@@ -21,7 +16,6 @@ pub struct RequestBuilder<'a, D> {
     request_template_id: Option<B256>,
     response_template_id: Option<B256>,
 
-    original_request: Option<BytesMut>,
     template_request: Option<TemplateRequest>,
     response_template: ResponseTemplate,
 
@@ -40,7 +34,6 @@ impl<'a, D> RequestBuilder<'a, D> {
             max_response_size: 0,
             request_template_id: None,
             response_template_id: None,
-            original_request: None,
             template_request: None,
             response_template: ResponseTemplate::None,
         }
@@ -107,41 +100,6 @@ where
         Ok(())
     }
 
-    pub async fn add_request_from_segment_logs(
-        &mut self,
-        log: RequestTLSCallSegment,
-    ) -> Result<()> {
-        let append_data = if log.isEncrypted {
-            let mut decryptor = self
-                .decryptor
-                .generate_decryptor(
-                    self.encrypted_key
-                        .as_ref()
-                        .ok_or(anyhow::anyhow!("encrypted key is not set"))?,
-                )
-                .await?;
-
-            let mut data = log.data.to_vec();
-
-            decryptor.decrypt_tls_data(&mut data).await?;
-            data.into()
-        } else {
-            log.data
-        };
-
-        log::trace!("append_data: {:?}", append_data);
-
-        if let Some(original_request) = &mut self.original_request {
-            original_request.put(append_data);
-        } else {
-            let mut data = BytesMut::new();
-            data.put(append_data);
-            self.original_request = Some(data);
-        }
-
-        Ok(())
-    }
-
     pub async fn add_request_from_template_field_logs(
         &mut self,
         log: RequestTLSCallTemplateField,
@@ -175,17 +133,9 @@ where
     }
 
     pub fn build(self) -> Result<ProveRequest> {
-        let request = if let Some(template_request) = self.template_request {
-            Request::Template(template_request)
-        } else {
-            let data = self
-                .original_request
-                .ok_or(anyhow::anyhow!("original request is not set"))?
-                .freeze()
-                .into();
-
-            Request::Original(OriginalRequest { data })
-        };
+        let request = self
+            .template_request
+            .ok_or(anyhow::anyhow!("template request is not set"))?;
 
         Ok(ProveRequest {
             request_id: self
@@ -202,7 +152,7 @@ where
                 .response_template_id
                 .ok_or(anyhow::anyhow!("response template id is not set"))?,
             response_template: self.response_template,
-            request,
+            request: Request::Template(request),
         })
     }
 }

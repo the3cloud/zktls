@@ -8,11 +8,6 @@ use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OriginalRequest {
-    pub data: Vec<u8>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TemplateRequest {
     pub template_hash: B256,
     pub template: Bytes,
@@ -23,20 +18,12 @@ pub struct TemplateRequest {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Request {
-    Original(OriginalRequest),
     Template(TemplateRequest),
-}
-
-impl Request {
-    pub fn new_original(data: Vec<u8>) -> Self {
-        Self::Original(OriginalRequest { data })
-    }
 }
 
 impl Request {
     pub fn data(&self) -> Result<Bytes> {
         match self {
-            Request::Original(req) => Ok(req.data.clone().into()),
             Request::Template(req) => {
                 let template = &req.template;
 
