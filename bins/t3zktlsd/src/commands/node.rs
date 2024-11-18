@@ -27,6 +27,9 @@ pub struct Cmd {
 
     #[arg(short, long, env)]
     decryptor_private_key: B256,
+
+    #[arg(short, long, env)]
+    mock: bool,
 }
 
 impl Cmd {
@@ -50,7 +53,11 @@ impl Cmd {
 
         let input_builder = t3zktls_input_builder::TLSInputBuilder::new(config.input_builder)?;
 
-        let guest = SP1GuestProver::default();
+        let mut guest = SP1GuestProver::default();
+
+        if self.mock {
+            guest = guest.mock();
+        }
 
         let submiter: ZkTLSSubmiter<_, Http<Client>, Ethereum> =
             ZkTLSSubmiter::new(provider, config.submiter);
