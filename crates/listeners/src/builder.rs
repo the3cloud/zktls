@@ -47,6 +47,17 @@ where
     pub fn add_request_from_begin_logs(&mut self, log: RequestTLSCallBegin) -> Result<()> {
         let prover_id = self.prover_id;
 
+        log::info!(
+            "TLS Call: \n request_id: {}\n remote: {}\n server_name: {}\n encrypted_key: {}\n max_response_size: {}\n request_template_id: {}\n response_template_id: {}",
+            log.requestId,
+            log.remote,
+            log.serverName,
+            log.encryptedKey,
+            log.maxResponseSize,
+            log.requestTemplateHash,
+            log.responseTemplateHash,
+        );
+
         if prover_id != self.prover_id {
             return Err(anyhow::anyhow!("prover id mismatch"));
         }
@@ -60,20 +71,9 @@ where
         } else {
             Some(log.encryptedKey)
         };
-        self.max_response_size = log.maxResponseSize;
+        self.max_response_size = log.maxResponseSize.try_into()?;
         self.request_template_id = Some(log.requestTemplateHash);
         self.response_template_id = Some(log.responseTemplateHash);
-
-        log::trace!(
-            "\nrequest_id: {:?}\n remote: {:?}\n server_name: {:?}\n encrypted_key: {:?}\n max_response_size: {:?}\n request_template_id: {:?}\n response_template_id: {:?}",
-            self.request_id,
-            self.remote,
-            self.server_name,
-            self.encrypted_key,
-            self.max_response_size,
-            self.request_template_id,
-            self.response_template_id,
-        );
 
         Ok(())
     }
@@ -104,6 +104,13 @@ where
         &mut self,
         log: RequestTLSCallTemplateField,
     ) -> Result<()> {
+        log::info!(
+            "Templated field: value: {}, field: {}, is_encrypted: {}",
+            log.value,
+            log.field,
+            log.isEncrypted
+        );
+
         let append_data = if log.isEncrypted {
             let mut decryptor = self
                 .decryptor

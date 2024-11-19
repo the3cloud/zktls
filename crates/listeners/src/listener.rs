@@ -130,25 +130,42 @@ where
         &mut self,
         logs: Vec<Log>,
     ) -> Result<Vec<ProveRequest>> {
-        let mut grouped_logs: HashMap<B256, Vec<Log>> = HashMap::new();
+        let mut block_grouped_logs: HashMap<u64, Vec<Log>> = HashMap::new();
 
-        // Group logs by transaction hash
         for log in logs {
-            if let Some(tx_hash) = log.transaction_hash {
-                grouped_logs.entry(tx_hash).or_default().push(log);
+            if let Some(block_number) = log.block_number {
+                block_grouped_logs
+                    .entry(block_number)
+                    .or_default()
+                    .push(log);
             }
         }
 
         let mut requests = Vec::new();
 
-        // Sort each group by log_index
-        for logs in grouped_logs.values_mut() {
-            logs.sort_by_key(|log| log.log_index);
+        for (_, logs) in block_grouped_logs {
+            if logs.is_empty() {
+                continue;
+            }
 
-            requests.extend(
-                self.tidy_logs_by_request_id_and_build_requests(logs)
-                    .await?,
-            );
+            let mut tx_grouped_logs: HashMap<B256, Vec<Log>> = HashMap::new();
+
+            // Group logs by transaction hash
+            for log in logs {
+                if let Some(tx_hash) = log.transaction_hash {
+                    tx_grouped_logs.entry(tx_hash).or_default().push(log);
+                }
+            }
+
+            // Sort each group by log_index
+            for logs in tx_grouped_logs.values_mut() {
+                logs.sort_by_key(|log| log.log_index);
+
+                requests.extend(
+                    self.tidy_logs_by_request_id_and_build_requests(logs)
+                        .await?,
+                );
+            }
         }
 
         Ok(requests)
@@ -177,10 +194,14 @@ where
         for (_, mut logs) in grouped_logs {
             logs.sort_by_key(|log| log.log_index);
 
-            let call_result = self.build_request(&logs).await?;
+            let call_result = self.build_request(&logs).await;
 
-            if let Some(prove_request) = call_result {
-                requests.push(prove_request);
+            if let Ok(call_result) = call_result {
+                if let Some(prove_request) = call_result {
+                    requests.push(prove_request);
+                }
+            } else {
+                log::warn!("build request failed: {:?}", call_result.err());
             }
         }
 
@@ -195,6 +216,11 @@ where
 
             match *selector {
                 RequestTLSCallBegin::SIGNATURE_HASH => {
+                    log::info!(
+                        "Received request at block {}",
+                        log.block_number.unwrap_or(u64::MAX)
+                    );
+
                     let decoded = RequestTLSCallBegin::decode_log_data(log.data(), false)?;
 
                     let request_template_hash = decoded.requestTemplateHash;

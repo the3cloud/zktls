@@ -31,9 +31,6 @@ impl GuestProver for SP1GuestProver {
 }
 
 pub fn prove(client: &ProverClient, input: GuestInput) -> Result<(GuestOutput, Vec<u8>)> {
-    sp1_sdk::utils::setup_logger();
-
-    // let client = ProverClient::new();
     let mut stdin = SP1Stdin::new();
 
     let mut input_bytes = Vec::new();

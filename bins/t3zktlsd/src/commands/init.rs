@@ -15,6 +15,9 @@ pub struct Cmd {
 
     #[arg(short, long, env)]
     rpc_url: String,
+
+    #[arg(short, long, env)]
+    begin_block_number: i64,
 }
 
 impl Cmd {
@@ -27,9 +30,9 @@ impl Cmd {
 
         doc["listener"]["prover_id"] = prover_id.to_string().into();
         doc["listener"]["gateway_address"] = self.gateway_address.to_string().into();
+        doc["listener"]["begin_block_number"] = self.begin_block_number.into();
         doc["prover"]["rpc_url"] = self.rpc_url.into();
         doc["submiter"]["gateway_address"] = self.gateway_address.to_string().into();
-
         let res = doc.to_string();
 
         fs::write(self.config, res)?;
