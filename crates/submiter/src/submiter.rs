@@ -37,7 +37,7 @@ where
     async fn submit(&mut self, prove_response: ProveResponse) -> Result<()> {
         log::info!("Submitting proof: {:#?}", prove_response);
 
-        // Self::submit(self, prove_response).await?;
+        Self::submit(self, prove_response).await?;
 
         Ok(())
     }

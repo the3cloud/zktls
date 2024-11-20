@@ -68,6 +68,8 @@ fn _request_tls_call(request: GuestInputRequest) -> Result<GuestInputResponse> {
         stream,
         random,
         response: buf,
+        filtered_responses_begin: vec![],
+        filtered_responses_length: vec![],
         filtered_responses: vec![],
     })
 }

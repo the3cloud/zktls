@@ -3,12 +3,9 @@ use std::{
     sync::Arc,
 };
 
-use alloy::{
-    primitives::{keccak256, Bytes, B256},
-    sol_types::SolValue,
-};
+use alloy::sol_types::SolValue;
 use rustls::{ClientConfig, ClientConnection, RootCertStore};
-use t3zktls_core::{GuestInputRequest, GuestInputResponse, GuestOutput, Request};
+use t3zktls_core::{GuestInputRequest, GuestInputResponse, GuestOutput};
 use t3zktls_replayable_tls::{crypto_provider, set_random, ReplayStream, ReplayTimeProvider};
 
 pub fn execute(request: GuestInputRequest, response: GuestInputResponse) -> GuestOutput {
@@ -48,53 +45,52 @@ pub fn execute(request: GuestInputRequest, response: GuestInputResponse) -> Gues
     let mut serialized_request = Vec::new();
     ciborium::into_writer(&request, &mut serialized_request).expect("Failed to serialize request");
 
-    let request_hash = compute_request_hash(
-        request.url,
-        request.server_name,
-        request.encrypted_key,
-        request.request,
-    );
+    let request_hash = request.request_hash();
+
+    // TODO: Match response in buf;
+
+    let response_data = response.filtered_responses.abi_encode();
 
     GuestOutput {
-        response_data: buf,
-        request_hash,
+        response_data,
+        request_hash: request_hash.into(),
     }
 }
 
-fn compute_request_hash(
-    remote: String,
-    server_name: String,
-    encrypted_key: Bytes,
-    request: Request,
-) -> [u8; 32] {
-    match request {
-        Request::Template(template_request) => compute_template_request_hash(
-            remote,
-            server_name,
-            encrypted_key,
-            template_request.template_hash,
-            &template_request.offsets[..template_request.unencrypted_offset as usize],
-            &template_request.fields[..template_request.unencrypted_offset as usize],
-        ),
-    }
-}
+// fn compute_request_hash(
+//     remote: String,
+//     server_name: String,
+//     encrypted_key: Bytes,
+//     request: Request,
+// ) -> [u8; 32] {
+//     match request {
+//         Request::Template(template_request) => compute_template_request_hash(
+//             remote,
+//             server_name,
+//             encrypted_key,
+//             template_request.template_hash,
+//             &template_request.offsets,
+//             &template_request.fields,
+//         ),
+//     }
+// }
 
-fn compute_template_request_hash(
-    remote: String,
-    server_name: String,
-    encrypted_key: Bytes,
-    template_hash: B256,
-    offsets: &[u64],
-    fields: &[Bytes],
-) -> [u8; 32] {
-    let data = (
-        remote,
-        server_name,
-        encrypted_key,
-        template_hash,
-        offsets,
-        fields,
-    );
+// fn compute_template_request_hash(
+//     remote: String,
+//     server_name: String,
+//     encrypted_key: Bytes,
+//     template_hash: B256,
+//     offsets: &[u64],
+//     fields: &[Bytes],
+// ) -> [u8; 32] {
+//     let data = (
+//         remote,
+//         server_name,
+//         encrypted_key,
+//         template_hash,
+//         offsets,
+//         fields,
+//     );
 
-    keccak256(data.abi_encode()).into()
-}
+//     keccak256(data.abi_encode()).into()
+// }

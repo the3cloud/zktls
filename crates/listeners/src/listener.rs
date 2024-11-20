@@ -2,7 +2,7 @@
 ///
 /// This struct is responsible for listening to events emitted by the ZkTLS Gateway contract,
 /// processing them, and handling TLS call requests.
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use alloy::{
     consensus::Transaction,
@@ -82,7 +82,6 @@ where
         let filter = self.compute_log_filter(latest_block_number);
 
         if let Some(filter) = filter {
-            log::trace!("filter: {:?}", filter);
             let logs = self.provider.get_logs(&filter).await?;
 
             let requests = self.tidy_logs_by_txid_and_build_requests(logs).await?;
@@ -130,7 +129,7 @@ where
         &mut self,
         logs: Vec<Log>,
     ) -> Result<Vec<ProveRequest>> {
-        let mut block_grouped_logs: HashMap<u64, Vec<Log>> = HashMap::new();
+        let mut block_grouped_logs: BTreeMap<u64, Vec<Log>> = BTreeMap::new();
 
         for log in logs {
             if let Some(block_number) = log.block_number {
@@ -148,7 +147,7 @@ where
                 continue;
             }
 
-            let mut tx_grouped_logs: HashMap<B256, Vec<Log>> = HashMap::new();
+            let mut tx_grouped_logs: BTreeMap<B256, Vec<Log>> = BTreeMap::new();
 
             // Group logs by transaction hash
             for log in logs {
@@ -175,7 +174,7 @@ where
         &mut self,
         logs: &[Log],
     ) -> Result<Vec<ProveRequest>> {
-        let mut grouped_logs: HashMap<B256, Vec<Log>> = HashMap::new();
+        let mut grouped_logs: BTreeMap<B256, Vec<Log>> = BTreeMap::new();
 
         for log in logs {
             let request_id = log
@@ -217,8 +216,9 @@ where
             match *selector {
                 RequestTLSCallBegin::SIGNATURE_HASH => {
                     log::info!(
-                        "Received request at block {}",
-                        log.block_number.unwrap_or(u64::MAX)
+                        "Received request at block {}, tx hash: {}",
+                        log.block_number.unwrap_or(u64::MAX),
+                        log.transaction_hash.unwrap_or(B256::ZERO)
                     );
 
                     let decoded = RequestTLSCallBegin::decode_log_data(log.data(), false)?;

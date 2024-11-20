@@ -38,6 +38,15 @@ impl TLSInputBuilder {
             encrypted_key: req.encrypted_key,
         };
 
+        // let request_data = compute_request_hash(
+        //     guest_input_request.url.clone(),
+        //     guest_input_request.server_name.clone(),
+        //     guest_input_request.encrypted_key.clone(),
+        //     guest_input_request.request.clone(),
+        // );
+
+        // println!("request_data: {:?}", request_data);
+
         let guest_input_request_cloned = guest_input_request.clone();
 
         let mut guest_input_response =
@@ -46,6 +55,8 @@ impl TLSInputBuilder {
 
         let response = guest_input_response.response.clone();
 
+        let mut filtered_responses_begin = Vec::new();
+        let mut filtered_responses_length = Vec::new();
         let mut filtered_responses = Vec::new();
 
         match req.response_template {
@@ -53,7 +64,9 @@ impl TLSInputBuilder {
             ResponseTemplate::Position { begin, length } => {
                 let fr = self.handle_response_template_position(begin, length, &response)?;
 
-                filtered_responses.push(fr);
+                filtered_responses_begin.push(fr.begin);
+                filtered_responses_length.push(fr.length);
+                filtered_responses.push(fr.content);
             }
             ResponseTemplate::Regex(regex) => {
                 let fr = self.handle_response_template_regex(
@@ -62,13 +75,17 @@ impl TLSInputBuilder {
                     String::from_utf8(response.clone())?,
                 )?;
 
-                filtered_responses.extend_from_slice(fr.as_slice());
+                filtered_responses_begin.extend(fr.iter().map(|fr| fr.begin));
+                filtered_responses_length.extend(fr.iter().map(|fr| fr.length));
+                filtered_responses.extend(fr.into_iter().map(|fr| fr.content));
             }
             ResponseTemplate::XPath(xpath) => {
                 let fr = self
                     .handle_response_template_xpath(xpath, String::from_utf8(response.clone())?)?;
 
-                filtered_responses.extend_from_slice(fr.as_slice());
+                filtered_responses_begin.extend(fr.iter().map(|fr| fr.begin));
+                filtered_responses_length.extend(fr.iter().map(|fr| fr.length));
+                filtered_responses.extend(fr.into_iter().map(|fr| fr.content));
             }
             ResponseTemplate::JsonPath(json_path) => {
                 let fr = self.handle_response_template_jsonpath(
@@ -76,7 +93,9 @@ impl TLSInputBuilder {
                     String::from_utf8(response.clone())?,
                 )?;
 
-                filtered_responses.extend_from_slice(fr.as_slice());
+                filtered_responses_begin.extend(fr.iter().map(|fr| fr.begin));
+                filtered_responses_length.extend(fr.iter().map(|fr| fr.length));
+                filtered_responses.extend(fr.into_iter().map(|fr| fr.content));
             }
         }
 
