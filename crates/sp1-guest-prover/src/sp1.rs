@@ -45,11 +45,13 @@ pub fn prove(client: &ProverClient, input: GuestInput) -> Result<(GuestOutput, V
     client.verify(&prover_output, &vk)?;
 
     let output = prover_output.public_values.to_vec();
-    let proof = prover_output.bytes();
+    let mut proof = prover_output.bytes();
+
+    if proof.len() <= 4 {
+        proof = Vec::new();
+    }
 
     let (request_hash, response_data) = GuestOutputABIType::abi_decode(&output, false)?;
-
-    // let guest_output: GuestOutput = ciborium::from_reader(&mut output.as_slice())?;
 
     Ok((
         GuestOutput {
