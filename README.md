@@ -23,13 +23,13 @@ TLS is a widely used foundational internet protocol that ensures the security an
 1. Clone the repo
 
 ```bash
-git clone --recurse-submodules https://github.com/the3cloud/zktls.git
+git clone https://github.com/the3cloud/zktls.git
 ```
 
 2. Compile the project
 
 ```bash
-cargo b && cargo t && cargo c && cargo d
+cargo b && cargo t && cargo c && cargo d --no-deps
 ```
 
 ## Future Work
