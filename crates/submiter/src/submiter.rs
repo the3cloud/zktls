@@ -1,4 +1,9 @@
-use alloy::{network::Network, primitives::Address, providers::Provider, transports::Transport};
+use alloy::{
+    network::{Network, ReceiptResponse},
+    primitives::Address,
+    providers::Provider,
+    transports::Transport,
+};
 use anyhow::Result;
 use t3zktls_contracts_ethereum::IZkTLSGateway;
 use t3zktls_core::{ProveResponse, Submiter};
@@ -30,6 +35,8 @@ where
     N: Network,
 {
     async fn submit(&mut self, prove_response: ProveResponse) -> Result<()> {
+        log::info!("Submitting proof: {:#?}", prove_response);
+
         Self::submit(self, prove_response).await?;
 
         Ok(())
@@ -58,7 +65,7 @@ where
             .get_receipt()
             .await?;
 
-        log::info!("Submitted proof: {:?}", receipt);
+        log::info!("Submitted proof: {}", receipt.transaction_hash());
 
         Ok(())
     }

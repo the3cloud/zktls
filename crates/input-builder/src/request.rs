@@ -44,8 +44,6 @@ fn _request_tls_call(request: GuestInputRequest) -> Result<GuestInputResponse> {
 
     let request_data = request.request.data()?;
 
-    println!("request_data: {}", String::from_utf8_lossy(&request_data));
-
     tls.write_all(&request_data)?;
 
     let mut buf = Vec::new();
@@ -70,6 +68,8 @@ fn _request_tls_call(request: GuestInputRequest) -> Result<GuestInputResponse> {
         stream,
         random,
         response: buf,
+        filtered_responses_begin: vec![],
+        filtered_responses_length: vec![],
         filtered_responses: vec![],
     })
 }

@@ -44,18 +44,27 @@ where
             for request in requests {
                 let request_id = request.request_id;
 
-                let input = self.input_builder.build_input(request).await?;
+                let input = self.input_builder.build_input(request).await;
 
-                let (output, proof) = self.guest.prove(input).await?;
+                if let Ok(input) = input {
+                    let (output, proof) = self.guest.prove(input).await?;
 
-                self.submitter
-                    .submit(ProveResponse {
-                        request_id,
-                        response_data: output.response_data.into(),
-                        request_hash: output.request_hash.into(),
-                        proof: proof.into(),
-                    })
-                    .await?;
+                    let submit_result = self
+                        .submitter
+                        .submit(ProveResponse {
+                            request_id,
+                            response_data: output.response_data.into(),
+                            request_hash: output.request_hash.into(),
+                            proof: proof.into(),
+                        })
+                        .await;
+
+                    if let Err(e) = submit_result {
+                        log::warn!("Submit proof failed: {}, {}", request_id, e);
+                    }
+                } else {
+                    log::warn!("build input failed: {:?}", input.err());
+                }
             }
 
             if let Some(loop_number) = self.config.loop_number {

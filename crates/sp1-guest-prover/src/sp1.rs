@@ -1,3 +1,5 @@
+use std::panic;
+
 use alloy::{
     primitives::{Bytes, B256},
     sol_types::SolValue,
@@ -20,20 +22,26 @@ impl SP1GuestProver {
 
 impl GuestProver for SP1GuestProver {
     async fn prove(&mut self, guest_input: GuestInput) -> Result<(GuestOutput, Vec<u8>)> {
-        let client = if self.mock {
+        let is_mock = self.mock;
+
+        tokio::task::spawn_blocking(move || _panic_catched_prove(is_mock, guest_input)).await?
+    }
+}
+
+fn _panic_catched_prove(is_mock: bool, input: GuestInput) -> Result<(GuestOutput, Vec<u8>)> {
+    panic::catch_unwind(move || {
+        let client = if is_mock {
             ProverClient::mock()
         } else {
             ProverClient::new()
         };
 
-        tokio::task::spawn_blocking(move || prove(&client, guest_input)).await?
-    }
+        prove(client, input)
+    })
+    .map_err(|e| anyhow::anyhow!("{:?}", e))?
 }
 
-pub fn prove(client: &ProverClient, input: GuestInput) -> Result<(GuestOutput, Vec<u8>)> {
-    sp1_sdk::utils::setup_logger();
-
-    // let client = ProverClient::new();
+pub fn prove(client: ProverClient, input: GuestInput) -> Result<(GuestOutput, Vec<u8>)> {
     let mut stdin = SP1Stdin::new();
 
     let mut input_bytes = Vec::new();
@@ -48,11 +56,13 @@ pub fn prove(client: &ProverClient, input: GuestInput) -> Result<(GuestOutput, V
     client.verify(&prover_output, &vk)?;
 
     let output = prover_output.public_values.to_vec();
-    let proof = prover_output.bytes();
+    let mut proof = prover_output.bytes();
+
+    if proof.len() <= 4 {
+        proof = Vec::new();
+    }
 
     let (request_hash, response_data) = GuestOutputABIType::abi_decode(&output, false)?;
-
-    // let guest_output: GuestOutput = ciborium::from_reader(&mut output.as_slice())?;
 
     Ok((
         GuestOutput {
