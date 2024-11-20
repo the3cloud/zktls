@@ -1,3 +1,5 @@
+use std::panic;
+
 use alloy::{
     primitives::{Bytes, B256},
     sol_types::SolValue,
@@ -20,17 +22,26 @@ impl SP1GuestProver {
 
 impl GuestProver for SP1GuestProver {
     async fn prove(&mut self, guest_input: GuestInput) -> Result<(GuestOutput, Vec<u8>)> {
-        let client = if self.mock {
+        let is_mock = self.mock;
+
+        tokio::task::spawn_blocking(move || _panic_catched_prove(is_mock, guest_input)).await?
+    }
+}
+
+fn _panic_catched_prove(is_mock: bool, input: GuestInput) -> Result<(GuestOutput, Vec<u8>)> {
+    panic::catch_unwind(move || {
+        let client = if is_mock {
             ProverClient::mock()
         } else {
             ProverClient::new()
         };
 
-        tokio::task::spawn_blocking(move || prove(&client, guest_input)).await?
-    }
+        prove(client, input)
+    })
+    .map_err(|e| anyhow::anyhow!("{:?}", e))?
 }
 
-pub fn prove(client: &ProverClient, input: GuestInput) -> Result<(GuestOutput, Vec<u8>)> {
+pub fn prove(client: ProverClient, input: GuestInput) -> Result<(GuestOutput, Vec<u8>)> {
     let mut stdin = SP1Stdin::new();
 
     let mut input_bytes = Vec::new();
