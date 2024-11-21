@@ -19,7 +19,7 @@ members = [
 
     "program/guest",
     "bins/t3zktlsd",
-    "bins/benchmark",
+    "bins/benchmark", "crates/r0-guest-prover",
 ]
 
 exclude = ["program/sp1/tls-sp1", "program/risc0/tls-r0"]
