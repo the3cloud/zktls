@@ -1,0 +1,19 @@
+[package]
+name = "t3zktls-guest-prover-r0"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+risc0-zkvm = { version = "1.1.2", default-features = false, features = ["client", "prove"] }
+
+t3zktls-core = { workspace = true }
+t3zktls-program-r0 = { workspace = true }
+
+tokio = { workspace = true }
+
+# ciborium = { workspace = true }
+
+[features]
+default = []
+cuda = ["risc0-zkvm/cuda"]

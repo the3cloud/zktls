@@ -9,10 +9,10 @@ use alloy::{
 };
 use anyhow::Result;
 use clap::Parser;
+use t3zktls_guest_prover_sp1::SP1GuestProver;
 use t3zktls_kms_local::K256LocalDecryptorGenerator;
 use t3zktls_listeners_ethereum::ZkTLSListener;
 use t3zktls_prover::ZkTLSProver;
-use t3zktls_sp1_guest_prover::SP1GuestProver;
 use t3zktls_submiter_ethereum::ZkTLSSubmiter;
 
 use crate::config::Config;
