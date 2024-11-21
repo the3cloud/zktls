@@ -1,0 +1,22 @@
+[package]
+name = "t3zktls-benchmark-sp1"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+t3zktls-core.workspace = true
+t3zktls-input-builder.workspace = true
+
+env_logger.workspace = true
+ciborium.workspace = true
+
+# risc0-zkvm = { version = "1.1.2", default-features = false, features = ["client", "prove"], optional = true }
+
+t3zktls-program-sp1 = { workspace = true }
+t3zktls-guest-prover-sp1 = { workspace = true }
+
+tokio = { workspace = true }
+
+[features]
+default = []
+cuda = ["t3zktls-guest-prover-sp1/cuda"]
