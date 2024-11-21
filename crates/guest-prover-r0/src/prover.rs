@@ -4,6 +4,7 @@ use anyhow::Result;
 use risc0_zkvm::{default_prover, ExecutorEnv, ProverOpts};
 use t3zktls_core::{GuestInput, GuestOutput, GuestProver};
 
+#[derive(Default)]
 pub struct Risc0GuestProver {}
 
 impl GuestProver for Risc0GuestProver {

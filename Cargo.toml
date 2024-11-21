@@ -23,7 +23,7 @@ members = [
 
 
     "bins/t3zktlsd",
-    "bins/benchmark-sp1",
+    "bins/benchmark-sp1", "bins/benchmark-r0",
 ]
 
 exclude = ["program/sp1/tls-sp1", "program/risc0/tls-r0"]
