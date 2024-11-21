@@ -13,3 +13,7 @@ t3zktls-program-r0 = { workspace = true }
 tokio = { workspace = true }
 
 # ciborium = { workspace = true }
+
+[features]
+default = []
+cuda = ["risc0-zkvm/cuda"]

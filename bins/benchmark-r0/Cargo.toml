@@ -12,3 +12,7 @@ env_logger.workspace = true
 t3zktls-guest-prover-r0 = { workspace = true }
 
 tokio = { workspace = true }
+
+[features]
+default = []
+cuda = ["t3zktls-guest-prover-r0/cuda"]
