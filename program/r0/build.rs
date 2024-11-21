@@ -1,4 +1,3 @@
-#[cfg(feature = "r0-backend")]
 fn execute() {
     use std::{env, fs, path::Path};
 
@@ -19,23 +18,6 @@ fn execute() {
 
     risc0_build_ethereum::generate_solidity_files(&guest_list, &option).unwrap();
 }
-
-#[cfg(feature = "sp1-backend")]
-fn execute() {
-    use sp1_helper::BuildArgs;
-
-    println!("cargo:rerun-if-changed=build.rs");
-
-    let args = BuildArgs {
-        elf_name: "tls.elf".into(),
-        ..Default::default()
-    };
-
-    sp1_helper::build_program_with_args("tls-sp1", args);
-}
-
-#[cfg(not(any(feature = "r0-backend", feature = "sp1-backend")))]
-fn execute() {}
 
 fn main() {
     execute();

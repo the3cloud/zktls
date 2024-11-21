@@ -8,6 +8,6 @@ anyhow = { workspace = true }
 risc0-zkvm = { version = "1.1.2", default-features = false, features = ["client", "prove"] }
 
 t3zktls-core = { workspace = true }
-t3zktls-program = { workspace = true, features = ["r0-backend"], default-features = false }
+t3zktls-program-r0 = { workspace = true }
 
 # ciborium = { workspace = true }

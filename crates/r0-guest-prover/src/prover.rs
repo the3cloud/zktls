@@ -14,7 +14,9 @@ fn prover(input: GuestInput) -> Result<GuestOutput> {
         .unwrap();
 
     let prove_result = prover
-        .prove_with_opts(env, t3zktls_program::TLS_R0_ELF, &ProverOpts::groth16())
+        .prove_with_opts(env, t3zktls_program_r0
+            
+            ::TLS_R0_ELF, &ProverOpts::groth16())
         .unwrap();
 
     let journal = prove_result.receipt.journal;

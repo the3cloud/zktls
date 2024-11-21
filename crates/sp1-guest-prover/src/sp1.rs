@@ -49,7 +49,7 @@ pub fn prove(client: ProverClient, input: GuestInput) -> Result<(GuestOutput, Ve
 
     stdin.write_vec(input_bytes);
 
-    let (pk, vk) = client.setup(t3zktls_program::TLS_ELF);
+    let (pk, vk) = client.setup(t3zktls_program_sp1::TLS_ELF);
 
     let prover_output = client.prove(&pk, stdin).groth16().run()?;
 

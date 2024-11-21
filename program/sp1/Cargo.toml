@@ -1,0 +1,10 @@
+[package]
+name = "t3zktls-program-sp1"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+[build-dependencies]
+sp1-helper = { version = "3.0.0" }
+

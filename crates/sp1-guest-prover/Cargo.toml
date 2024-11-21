@@ -6,7 +6,7 @@ edition.workspace = true
 [dependencies]
 sp1-sdk = { version = "3.0.0" }
 
-t3zktls-program = { workspace = true, features = ["sp1-backend"] }
+t3zktls-program-sp1 = { workspace = true }
 t3zktls-core = { workspace = true }
 
 ciborium.workspace = true
