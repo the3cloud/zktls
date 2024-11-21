@@ -12,7 +12,7 @@ serde = { workspace = true }
 
 t3zktls-listeners-ethereum = { workspace = true }
 t3zktls-input-builder = { workspace = true }
-t3zktls-sp1-guest-prover = { workspace = true }
+t3zktls-guest-prover-sp1 = { workspace = true }
 t3zktls-submiter-ethereum = { workspace = true }
 t3zktls-prover = { workspace = true }
 t3zktls-kms-local = { workspace = true }

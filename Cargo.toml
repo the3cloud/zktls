@@ -9,8 +9,8 @@ members = [
 
     "crates/listeners",
     "crates/input-builder",
-    "crates/sp1-guest-prover",
-    "crates/r0-guest-prover",
+    "crates/guest-prover-sp1",
+    "crates/guest-prover-r0",
     "crates/submiter",
 
     "crates/prover",
@@ -61,7 +61,8 @@ t3zktls-core = { path = "core", version = "0.1.0" }
 t3zktls-replayable-tls = { path = "program/libs/replayable-tls", version = "0.1.0" }
 t3zktls-program-r0 = { path = "program/r0", version = "0.1.0", default-features = false }
 t3zktls-program-sp1 = { path = "program/sp1", version = "0.1.0", default-features = false }
-t3zktls-sp1-guest-prover = { path = "crates/sp1-guest-prover", version = "0.1.0" }
+t3zktls-guest-prover-sp1 = { path = "crates/guest-prover-sp1", version = "0.1.0" }
+t3zktls-guest-prover-r0 = { path = "crates/guest-prover-r0", version = "0.1.0" }
 t3zktls-submiter-ethereum = { path = "crates/submiter", version = "0.1.0" }
 t3zktls-prover = { path = "crates/prover", version = "0.1.0" }
 
