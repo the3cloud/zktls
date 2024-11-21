@@ -20,15 +20,10 @@ fn panic_catched_prover(input: GuestInput) -> Result<(GuestOutput, Vec<u8>)> {
 fn prover(input: GuestInput) -> Result<(GuestOutput, Vec<u8>)> {
     let prover = default_prover();
 
-    let env = ExecutorEnv::builder()
-        .write(&input)
-        .unwrap()
-        .build()
-        .unwrap();
+    let env = ExecutorEnv::builder().write(&input)?.build()?;
 
-    let prove_result = prover
-        .prove_with_opts(env, t3zktls_program_r0::TLS_R0_ELF, &ProverOpts::groth16())
-        .unwrap();
+    let prove_result =
+        prover.prove_with_opts(env, t3zktls_program_r0::TLS_R0_ELF, &ProverOpts::groth16())?;
 
     let journal = prove_result.receipt.journal;
     let guest_output: GuestOutput = journal.decode()?;
