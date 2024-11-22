@@ -89,3 +89,4 @@ toml_edit = "0.22.22"
 
 [patch.crates-io]
 risc0-sys = { git = "https://github.com/the3cloud/risc0.git", branch = "fix-cuda-build" }
+risc0-zkvm = { git = "https://github.com/the3cloud/risc0.git", branch = "fix-cuda-build" }
