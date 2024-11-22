@@ -86,3 +86,6 @@ toml = "0.8.19"
 toml_edit = "0.22.22"
 
 # hex = "0.4.3"
+
+[patch.crates-io]
+risc0-sys = { git = "https://github.com/the3cloud/risc0.git", branch = "fix-cuda-build" }
