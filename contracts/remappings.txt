@@ -1,0 +1,2 @@
+forge-std/=dependencies/forge-std-1.9.4/
+zktls-contracts/=dependencies/zktls-contracts-0.1.0-alpha/contracts

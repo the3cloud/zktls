@@ -16,7 +16,7 @@ pub struct GuestInputRequest {
 
 impl GuestInputRequest {
     pub fn request_hash(&self) -> B256 {
-        let res = compute_request_hash(
+        let res = compute_request_bytes(
             self.url.clone(),
             self.server_name.clone(),
             self.encrypted_key.clone(),
@@ -25,13 +25,11 @@ impl GuestInputRequest {
 
         let res: Bytes = res.into();
 
-        println!("res: {:?}", res);
-
         keccak256(res)
     }
 }
 
-fn compute_template_request_hash(
+fn compute_template_request_bytes(
     remote: String,
     server_name: String,
     encrypted_key: Bytes,
@@ -51,14 +49,14 @@ fn compute_template_request_hash(
     data.abi_encode_sequence()
 }
 
-fn compute_request_hash(
+fn compute_request_bytes(
     remote: String,
     server_name: String,
     encrypted_key: Bytes,
     request: Request,
 ) -> Vec<u8> {
     match request {
-        Request::Template(template_request) => compute_template_request_hash(
+        Request::Template(template_request) => compute_template_request_bytes(
             remote,
             server_name,
             encrypted_key,

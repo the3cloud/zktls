@@ -1,6 +1,10 @@
 [profile.default]
 src = "src"
 out = "out"
-libs = ["lib"]
+libs = ["lib", "dependencies"]
+
+[dependencies]
+forge-std = "1.9.4"
+zktls-contracts = { version = "0.1.0-alpha", url = "https://github.com/the3cloud/zktls-contracts/archive/refs/tags/v0.1.0-alpha.zip" }
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
