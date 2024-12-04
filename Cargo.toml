@@ -50,7 +50,7 @@ rustls = { version = "0.23.13", default-features = false, features = ["std"] }
 rustls-rustcrypto = { git = "https://github.com/the3cloud/rustls-rustcrypto.git" }
 webpki-roots = "0.26.6"
 
-alloy = "0.6"
+alloy = "0.7"
 
 t3zktls-contracts-ethereum = { path = "contracts", version = "0.1.0" }
 t3zktls-kms-local = { path = "crates/kms/local", version = "0.1.0" }
