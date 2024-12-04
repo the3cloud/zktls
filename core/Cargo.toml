@@ -5,7 +5,7 @@ edition.workspace = true
 
 [dependencies]
 serde = { workspace = true }
-alloy = { workspace = true, features = ["serde"] }
+alloy = { workspace = true, features = ["serde", "sol-types"] }
 
 log = { workspace = true }
 
