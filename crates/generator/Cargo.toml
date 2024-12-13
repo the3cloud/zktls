@@ -1,0 +1,6 @@
+[package]
+name = "t3zktls-generator"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]

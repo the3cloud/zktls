@@ -6,13 +6,13 @@ members = [
 
     "crates/recordable-tls",
 
-    # "crates/listeners",
     # "crates/input-builder",
     # "crates/guest-prover-sp1",
     # "crates/guest-prover-r0",
     # "crates/submiter",
 
     "crates/prover",
+    "crates/generator",
 
     # "program/libs/tls",
     # "program/libs/replayable-tls",
@@ -20,10 +20,10 @@ members = [
     # "program/sp1",
     # "program/r0",
 
-
     # "bins/t3zktlsd",
     # "bins/benchmark-sp1", "bins/benchmark-r0",
 ]
+
 
 exclude = ["program/sp1/tls-sp1", "program/risc0/tls-r0"]
 
