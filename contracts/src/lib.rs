@@ -1,15 +1,12 @@
-#![allow(clippy::too_many_arguments)]
-
 use alloy::sol;
 
-sol!(
+sol! {
     #[sol(rpc)]
-    IZkTLSGateway,
-    "../target/contracts/IZkTLSGateway.sol/IZkTLSGateway.json"
-);
-
-sol!(
-    #[sol(rpc)]
-    ZkTLSGateway,
-    "../target/contracts/ZkTLSGateway.sol/ZkTLSGateway.json"
-);
+    interface IZkTLSDAppCallback {
+        /// @notice Callback function that receives the response from a ZkTLS request
+        /// @dev This function is called by the ZkTLS gatewal when a response is ready
+        /// @param requestId_ The unique identifier of the TLS request
+        /// @param response_ The verified response data from the TLS request
+        function deliveryResponse(bytes32 requestId_, bytes calldata response_) external;
+    }
+}
