@@ -12,7 +12,8 @@ members = [
     # "crates/submiter",
 
     "crates/prover",
-    "crates/generator",
+
+    "crates/cli-generator",
 
     # "program/libs/tls",
     # "program/libs/replayable-tls",

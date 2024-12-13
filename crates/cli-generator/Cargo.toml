@@ -1,5 +1,5 @@
 [package]
-name = "t3zktls-generator"
+name = "t3zktls-cli-generator"
 version.workspace = true
 edition.workspace = true
 
