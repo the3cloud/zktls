@@ -12,7 +12,7 @@ members = [
     # "crates/guest-prover-r0",
     # "crates/submiter",
 
-    # "crates/prover",
+    "crates/prover",
 
     # "program/libs/tls",
     # "program/libs/replayable-tls",
@@ -42,10 +42,10 @@ alloy = "0.7"
 
 once_cell = "1.19.0"
 
-# serde = { version = "1.0.214", default-features = false, features = [
-#     "alloc",
-#     "derive",
-# ] }
+serde = { version = "1.0.214", default-features = false, features = [
+    "alloc",
+    "derive",
+] }
 # bytes = "1.7.2"
 # ciborium = "0.2.0"
 
@@ -68,7 +68,7 @@ t3zktls-core = { path = "core", version = "0.1.0" }
 # t3zktls-submiter-ethereum = { path = "crates/submiter", version = "0.1.0" }
 # t3zktls-prover = { path = "crates/prover", version = "0.1.0" }
 
-# tokio = "1.41.0"
+tokio = "1.41.0"
 
 # k256 = "0.13.4"
 # aes-gcm = { version = "0.10.3", default-features = false }
