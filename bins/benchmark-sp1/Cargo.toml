@@ -13,6 +13,8 @@ t3zktls-guest-prover-sp1 = { workspace = true }
 
 tokio = { workspace = true }
 
+hex = { workspace = true }
+
 [features]
 default = []
 cuda = ["t3zktls-guest-prover-sp1/cuda"]

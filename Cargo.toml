@@ -3,27 +3,27 @@ resolver = "2"
 members = [
     "core",
 
-    "contracts",
-    "crates/kms/local",
-    "crates/recordable-tls",
+    # "contracts",
+    # "crates/kms/local",
+    # "crates/recordable-tls",
 
-    "crates/listeners",
-    "crates/input-builder",
-    "crates/guest-prover-sp1",
-    "crates/guest-prover-r0",
-    "crates/submiter",
+    # "crates/listeners",
+    # "crates/input-builder",
+    # "crates/guest-prover-sp1",
+    # "crates/guest-prover-r0",
+    # "crates/submiter",
 
-    "crates/prover",
+    # "crates/prover",
 
-    "program/libs/tls",
-    "program/libs/replayable-tls",
+    # "program/libs/tls",
+    # "program/libs/replayable-tls",
 
-    "program/sp1",
-    "program/r0",
+    # "program/sp1",
+    # "program/r0",
 
 
-    "bins/t3zktlsd",
-    "bins/benchmark-sp1", "bins/benchmark-r0",
+    # "bins/t3zktlsd",
+    # "bins/benchmark-sp1", "bins/benchmark-r0",
 ]
 
 exclude = ["program/sp1/tls-sp1", "program/risc0/tls-r0"]
@@ -33,6 +33,8 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace.dependencies]
+t3zktls-program-core = { git = "https://github.com/the3cloud/zkvm-programs.git", branch = "feat-v1" }
+
 once_cell = "1.19.0"
 anyhow = "1.0.91"
 log = "0.4.22"
@@ -85,4 +87,4 @@ clap = { version = "4.5.20", features = ["derive"] }
 toml = "0.8.19"
 toml_edit = "0.22.22"
 
-# hex = "0.4.3"
+hex = "0.4.3"

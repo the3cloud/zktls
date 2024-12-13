@@ -40,6 +40,7 @@ async fn main() {
     let output = prover.prove(input).await.unwrap();
 
     let duration = start.elapsed();
+
     println!("Time taken: {:?}", duration);
 
     handle_output(output.0);

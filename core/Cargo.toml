@@ -4,8 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-serde = { workspace = true }
-alloy = { workspace = true, features = ["serde", "sol-types"] }
+t3zktls-program-core = { workspace = true }
 
 log = { workspace = true }
 

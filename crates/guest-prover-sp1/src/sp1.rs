@@ -58,6 +58,9 @@ pub fn prove(client: ProverClient, input: GuestInput) -> Result<(GuestOutput, Ve
     let output = prover_output.public_values.to_vec();
     let mut proof = prover_output.bytes();
 
+    println!("proof: {:?}", hex::encode(&proof));
+    println!("output: {:?}", hex::encode(&output));
+
     if proof.len() <= 4 {
         proof = Vec::new();
     }

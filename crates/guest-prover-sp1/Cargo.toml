@@ -17,6 +17,8 @@ tokio = { workspace = true }
 
 alloy = { workspace = true, features = ["sol-types"] }
 
+hex = { workspace = true }
+
 [dev-dependencies]
 tokio = { workspace = true }
 
