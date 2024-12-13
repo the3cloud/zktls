@@ -4,7 +4,7 @@ members = [
     "contracts",
     "core",
 
-    # "crates/recordable-tls",
+    "crates/recordable-tls",
 
     # "crates/listeners",
     # "crates/input-builder",
@@ -40,6 +40,8 @@ env_logger = "0.11.5"
 
 alloy = "0.7"
 
+once_cell = "1.19.0"
+
 # serde = { version = "1.0.214", default-features = false, features = [
 #     "alloc",
 #     "derive",
@@ -47,19 +49,17 @@ alloy = "0.7"
 # bytes = "1.7.2"
 # ciborium = "0.2.0"
 
-# rand_core = "0.6.4"
-# rustls = { version = "0.23.13", default-features = false, features = ["std"] }
-# rustls-rustcrypto = { git = "https://github.com/the3cloud/rustls-rustcrypto.git" }
+rand_core = "0.6.4"
+rustls = { version = "0.23.13", default-features = false, features = ["std"] }
+rustls-rustcrypto = { git = "https://github.com/the3cloud/rustls-rustcrypto.git" }
 # webpki-roots = "0.26.6"
 
-# alloy = "0.7"
-
+t3zktls-core = { path = "core", version = "0.1.0" }
 # t3zktls-contracts-ethereum = { path = "contracts", version = "0.1.0" }
 # t3zktls-kms-local = { path = "crates/kms/local", version = "0.1.0" }
 # t3zktls-input-builder = { path = "crates/input-builder", version = "0.1.0" }
 # t3zktls-listeners-ethereum = { path = "crates/listeners", version = "0.1.0" }
 # t3zktls-recordable-tls = { path = "crates/recordable-tls", version = "0.1.0" }
-# t3zktls-core = { path = "core", version = "0.1.0" }
 # t3zktls-replayable-tls = { path = "program/libs/replayable-tls", version = "0.1.0" }
 # t3zktls-program-r0 = { path = "program/r0", version = "0.1.0", default-features = false }
 # t3zktls-program-sp1 = { path = "program/sp1", version = "0.1.0", default-features = false }
