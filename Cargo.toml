@@ -14,13 +14,6 @@ members = [
 
     "crates/prover",
 
-
-    # "program/libs/tls",
-    # "program/libs/replayable-tls",
-
-    # "program/sp1",
-    # "program/r0",
-
     # "bins/t3zktlsd",
     # "bins/benchmark-sp1", "bins/benchmark-r0",
 ]
