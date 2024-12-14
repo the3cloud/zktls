@@ -1,12 +1,11 @@
 use std::num::NonZeroUsize;
 
-use alloy::primitives::B256;
+use alloy::primitives::Bytes;
 use anyhow::Result;
-use t3zktls_core::{
-    FilteredResponse, GuestInput, GuestInputRequest, InputBuilder, ProveRequest, ResponseTemplate,
-};
+use t3zktls_core::InputBuilder;
+use t3zktls_program_core::{GuestInput, Request, ResponseTemplate};
 
-use crate::{regex_cache::RegexCache, request::request_tls_call, Config};
+use crate::{regex_cache::RegexCache, request::request_tls_call, Config, FilteredResponse};
 
 pub struct TLSInputBuilder {
     cache: RegexCache,
@@ -24,89 +23,59 @@ impl TLSInputBuilder {
 }
 
 impl InputBuilder for TLSInputBuilder {
-    async fn build_input(&mut self, request: ProveRequest) -> Result<GuestInput> {
+    async fn build_input(&mut self, request: Request) -> Result<GuestInput> {
         self.handle_request_tls_call(request).await
     }
 }
 
 impl TLSInputBuilder {
-    async fn handle_request_tls_call(&mut self, req: ProveRequest) -> Result<GuestInput> {
-        let guest_input_request = GuestInputRequest {
-            url: req.remote,
-            server_name: req.server_name,
-            request: req.request,
-            encrypted_key: req.encrypted_key,
-        };
-
-        // let request_data = compute_request_hash(
-        //     guest_input_request.url.clone(),
-        //     guest_input_request.server_name.clone(),
-        //     guest_input_request.encrypted_key.clone(),
-        //     guest_input_request.request.clone(),
-        // );
-
-        // println!("request_data: {:?}", request_data);
-
-        let guest_input_request_cloned = guest_input_request.clone();
+    async fn handle_request_tls_call(&mut self, req: Request) -> Result<GuestInput> {
+        // OPT: avoid cloning
+        let req_cloned = req.clone();
 
         let mut guest_input_response =
-            tokio::task::spawn_blocking(move || request_tls_call(guest_input_request_cloned))
-                .await??;
+            tokio::task::spawn_blocking(move || request_tls_call(&req_cloned)).await??;
 
-        let response = guest_input_response.response.clone();
+        for template in &req.response_template {
+            match template {
+                ResponseTemplate::Offset { begin, length } => {
+                    let fr = self.handle_response_template_position(
+                        *begin,
+                        *length,
+                        &guest_input_response.response,
+                    )?;
 
-        let mut filtered_responses_begin = Vec::new();
-        let mut filtered_responses_length = Vec::new();
-        let mut filtered_responses = Vec::new();
+                    guest_input_response.filtered_responses_begin.push(fr.begin);
+                    guest_input_response
+                        .filtered_responses_length
+                        .push(fr.length);
+                    guest_input_response
+                        .filtered_responses
+                        .push(Bytes::from(fr.bytes));
+                }
+                ResponseTemplate::Regex { pattern } => {
+                    let fr = self.handle_response_template_regex(
+                        pattern.as_str(),
+                        &guest_input_response.response,
+                    )?;
 
-        match req.response_template {
-            ResponseTemplate::None => {}
-            ResponseTemplate::Position { begin, length } => {
-                let fr = self.handle_response_template_position(begin, length, &response)?;
-
-                filtered_responses_begin.push(fr.begin);
-                filtered_responses_length.push(fr.length);
-                filtered_responses.push(fr.content);
-            }
-            ResponseTemplate::Regex(regex) => {
-                let fr = self.handle_response_template_regex(
-                    req.response_template_id,
-                    regex,
-                    String::from_utf8(response.clone())?,
-                )?;
-
-                filtered_responses_begin.extend(fr.iter().map(|fr| fr.begin));
-                filtered_responses_length.extend(fr.iter().map(|fr| fr.length));
-                filtered_responses.extend(fr.into_iter().map(|fr| fr.content));
-            }
-            ResponseTemplate::XPath(xpath) => {
-                let fr = self
-                    .handle_response_template_xpath(xpath, String::from_utf8(response.clone())?)?;
-
-                filtered_responses_begin.extend(fr.iter().map(|fr| fr.begin));
-                filtered_responses_length.extend(fr.iter().map(|fr| fr.length));
-                filtered_responses.extend(fr.into_iter().map(|fr| fr.content));
-            }
-            ResponseTemplate::JsonPath(json_path) => {
-                let fr = self.handle_response_template_jsonpath(
-                    json_path,
-                    String::from_utf8(response.clone())?,
-                )?;
-
-                filtered_responses_begin.extend(fr.iter().map(|fr| fr.begin));
-                filtered_responses_length.extend(fr.iter().map(|fr| fr.length));
-                filtered_responses.extend(fr.into_iter().map(|fr| fr.content));
+                    guest_input_response
+                        .filtered_responses_begin
+                        .extend(fr.iter().map(|fr| fr.begin));
+                    guest_input_response
+                        .filtered_responses_length
+                        .extend(fr.iter().map(|fr| fr.length));
+                    guest_input_response
+                        .filtered_responses
+                        .extend(fr.into_iter().map(|fr| Bytes::from(fr.bytes)));
+                }
             }
         }
 
-        guest_input_response.filtered_responses = filtered_responses;
-
-        let guest_input = GuestInput {
-            request: guest_input_request,
+        Ok(GuestInput {
+            request: req,
             response: guest_input_response,
-        };
-
-        Ok(guest_input)
+        })
     }
 
     fn handle_response_template_position(
@@ -120,51 +89,57 @@ impl TLSInputBuilder {
         Ok(FilteredResponse {
             begin,
             length,
-            content,
+            bytes: content,
         })
     }
 
     fn handle_response_template_regex(
         &mut self,
-        template_id: B256,
-        regex: String,
-        response: String,
+        regex: &str,
+        response: &[u8],
     ) -> Result<Vec<FilteredResponse>> {
-        let filtered_responses = self.cache.find(template_id, &regex, &response)?;
+        let filtered_responses = self
+            .cache
+            .find(&regex, &String::from_utf8(response.to_vec())?)?;
 
         Ok(filtered_responses)
     }
 
-    fn handle_response_template_xpath(
-        &mut self,
-        _xpath: String,
-        _response: String,
-    ) -> Result<Vec<FilteredResponse>> {
-        Err(anyhow::anyhow!("not implemented"))
-    }
+    // fn handle_response_template_xpath(
+    //     &mut self,
+    //     _xpath: String,
+    //     _response: String,
+    // ) -> Result<Vec<FilteredResponse>> {
+    //     Err(anyhow::anyhow!("not implemented"))
+    // }
 
-    fn handle_response_template_jsonpath(
-        &mut self,
-        _json_path: String,
-        _response: String,
-    ) -> Result<Vec<FilteredResponse>> {
-        Err(anyhow::anyhow!("not implemented"))
-    }
+    // fn handle_response_template_jsonpath(
+    //     &mut self,
+    //     _json_path: String,
+    //     _response: String,
+    // ) -> Result<Vec<FilteredResponse>> {
+    //     Err(anyhow::anyhow!("not implemented"))
+    // }
 }
 
 #[cfg(test)]
 mod tests {
     use std::fs;
 
-    use t3zktls_core::ProveRequest;
+    use t3zktls_program_core::Request;
 
     use crate::{Config, TLSInputBuilder};
 
     #[tokio::test]
     async fn test_handle_response1() {
-        let bytes = include_bytes!("../testdata/req0.cbor");
+        let bytes = include_str!("../testdata/req0.json");
 
-        let req: ProveRequest = ciborium::from_reader(bytes.as_slice()).unwrap();
+        let mut req: Request = serde_json::from_str(bytes).unwrap();
+
+        let request_body =
+            "GET /get HTTP/1.1\r\nHost: httpbin.org\r\nAccept: */*\r\nConnection: Close\r\n\r\n";
+
+        req.request = request_body.as_bytes().to_vec().into();
 
         let config = Config {
             regex_cache_size: 100,
@@ -179,9 +154,8 @@ mod tests {
             String::from_utf8(input.response.response.clone()).unwrap()
         );
 
-        let mut guest_input_bytes = Vec::new();
-        ciborium::ser::into_writer(&input, &mut guest_input_bytes).unwrap();
+        let guest_input_bytes = serde_json::to_string_pretty(&input).unwrap();
 
-        fs::write("../../target/guest_input0.cbor", guest_input_bytes).unwrap();
+        fs::write("../../target/guest_input0.json", guest_input_bytes).unwrap();
     }
 }

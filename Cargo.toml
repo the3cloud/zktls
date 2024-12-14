@@ -6,14 +6,14 @@ members = [
 
     "crates/recordable-tls",
 
-    # "crates/input-builder",
+    "crates/cli-generator",
+    "crates/input-builder",
     # "crates/guest-prover-sp1",
     # "crates/guest-prover-r0",
     # "crates/submiter",
 
     "crates/prover",
 
-    "crates/cli-generator",
 
     # "program/libs/tls",
     # "program/libs/replayable-tls",
@@ -52,7 +52,7 @@ serde_json = "1.0.132"
 rand_core = "0.6.4"
 rustls = { version = "0.23.13", default-features = false, features = ["std"] }
 rustls-rustcrypto = { git = "https://github.com/the3cloud/rustls-rustcrypto.git" }
-# webpki-roots = "0.26.6"
+webpki-roots = "0.26.6"
 
 t3zktls-program-core = { git = "https://github.com/the3cloud/zkvm-programs.git", branch = "feat-v1" }
 t3zktls-core = { path = "core", version = "0.1.0" }
@@ -60,7 +60,7 @@ t3zktls-core = { path = "core", version = "0.1.0" }
 # t3zktls-kms-local = { path = "crates/kms/local", version = "0.1.0" }
 # t3zktls-input-builder = { path = "crates/input-builder", version = "0.1.0" }
 # t3zktls-listeners-ethereum = { path = "crates/listeners", version = "0.1.0" }
-# t3zktls-recordable-tls = { path = "crates/recordable-tls", version = "0.1.0" }
+t3zktls-recordable-tls = { path = "crates/recordable-tls", version = "0.1.0" }
 # t3zktls-replayable-tls = { path = "program/libs/replayable-tls", version = "0.1.0" }
 # t3zktls-program-r0 = { path = "program/r0", version = "0.1.0", default-features = false }
 # t3zktls-program-sp1 = { path = "program/sp1", version = "0.1.0", default-features = false }
@@ -75,8 +75,8 @@ tokio = "1.41.0"
 # aes-gcm = { version = "0.10.3", default-features = false }
 # sha2 = "0.10.8"
 
-# regex = "1.11.1"
-# lru = "0.12.5"
+regex = "1.11.1"
+lru = "0.12.5"
 
 # xrust = "1.2.0"
 # jsonpath-rust = "0.7.3"

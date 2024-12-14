@@ -1,13 +1,13 @@
 use std::num::NonZeroUsize;
 
-use alloy::primitives::B256;
 use anyhow::Result;
 use lru::LruCache;
 use regex::Regex;
-use t3zktls_core::FilteredResponse;
+
+use crate::FilteredResponse;
 
 pub struct RegexCache {
-    cache: LruCache<B256, Regex>,
+    cache: LruCache<String, Regex>,
 }
 
 impl RegexCache {
@@ -17,15 +17,10 @@ impl RegexCache {
         }
     }
 
-    pub fn find(
-        &mut self,
-        template_id: B256,
-        pattern: &str,
-        text: &str,
-    ) -> Result<Vec<FilteredResponse>> {
+    pub fn find(&mut self, pattern: &str, text: &str) -> Result<Vec<FilteredResponse>> {
         let regex = self
             .cache
-            .try_get_or_insert(template_id, || Regex::new(pattern))?;
+            .try_get_or_insert(pattern.to_string(), || Regex::new(pattern))?;
 
         let matches = regex.find_iter(text);
 
@@ -39,7 +34,7 @@ impl RegexCache {
             let filtered_response = FilteredResponse {
                 begin: begin as u64,
                 length: length as u64,
-                content: s.as_bytes().to_vec(),
+                bytes: s.as_bytes().to_vec(),
             };
 
             filtered_responses.push(filtered_response);
