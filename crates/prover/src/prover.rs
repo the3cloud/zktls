@@ -38,25 +38,27 @@ where
     S: Submiter,
 {
     pub async fn run(&mut self) -> Result<()> {
+        // TODO: Add parallel prove and submiter
         loop {
-            let request = self.listener.generate_request().await?;
+            let requests = self.listener.generate_requests().await?;
 
-            let request_id = request.request_id()?;
+            for request in requests {
+                let request_id = request.request_id()?;
 
-            let input = self.input_builder.build_input(request).await;
+                let input = self.input_builder.build_input(request).await;
 
-            if let Ok(input) = input {
-                let output = self.guest.prove(input).await?;
+                if let Ok(input) = input {
+                    let output = self.guest.prove(input).await?;
 
-                let submit_result = self.submitter.submit(output).await;
+                    let submit_result = self.submitter.submit(output).await;
 
-                if let Err(e) = submit_result {
-                    log::warn!("Submit proof failed: {}, {}", request_id, e);
+                    if let Err(e) = submit_result {
+                        log::warn!("Submit proof failed: {}, {}", request_id, e);
+                    }
+                } else {
+                    log::warn!("build input failed: {:?}", input.err());
                 }
-            } else {
-                log::warn!("build input failed: {:?}", input.err());
             }
-
             if let Some(loop_number) = self.config.loop_number {
                 if self.loop_number >= loop_number {
                     break Ok(());

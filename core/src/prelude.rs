@@ -5,7 +5,7 @@ use t3zktls_program_core::{GuestInput, Request, Response};
 
 /// Generate a request from the listener.
 pub trait RequestGenerator {
-    fn generate_request(&mut self) -> impl Future<Output = Result<Request>> + Send;
+    fn generate_requests(&mut self) -> impl Future<Output = Result<Vec<Request>>> + Send;
 }
 
 /// Build the input for the zktls program.
