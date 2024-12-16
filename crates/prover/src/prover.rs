@@ -11,7 +11,7 @@ pub struct ZkTLSProver<G, I, P, S> {
     generator: G,
     input_builder: I,
     guest: P,
-    submitter: S,
+    submitter: Option<S>,
 
     loop_number: Option<u64>,
     sleep_duration: u64,
@@ -27,7 +27,7 @@ impl<G, I, P, S> ZkTLSProver<G, I, P, S> {
         generator: G,
         input_builder: I,
         guest: P,
-        submitter: S,
+        submitter: Option<S>,
     ) -> Result<Self> {
         let guest_program = fs::read(&config.guest_program_path).await?;
 
@@ -68,10 +68,12 @@ where
 
                     output.prover_id = self.prover_id;
 
-                    let submit_result = self.submitter.submit(output).await;
+                    if let Some(submitter) = &mut self.submitter {
+                        let submit_result = submitter.submit(output).await;
 
-                    if let Err(e) = submit_result {
-                        log::warn!("Submit proof failed: {}, {}", request_id, e);
+                        if let Err(e) = submit_result {
+                            log::warn!("Submit proof failed: {}, {}", request_id, e);
+                        }
                     }
                 } else {
                     log::warn!("build input failed: {:?}", input.err());

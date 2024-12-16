@@ -15,7 +15,10 @@ pub struct Cmd {
     config: PathBuf,
 
     #[arg(short, long, env)]
-    mock: bool,
+    mock_prover: bool,
+
+    #[arg(short, long, env)]
+    mock_submiter: bool,
 }
 
 impl Cmd {
@@ -26,7 +29,7 @@ impl Cmd {
 
         let mut guest = SP1GuestProver::default();
 
-        if self.mock {
+        if self.mock_prover {
             guest = guest.mock();
         }
 
@@ -34,8 +37,14 @@ impl Cmd {
 
         let submiter = ZkTLSSubmiter::new(config.submiter).await?;
 
+        let submitter = if self.mock_submiter {
+            None
+        } else {
+            Some(submiter)
+        };
+
         let mut prover =
-            ZkTLSProver::new(config.prover, generator, input_builder, guest, submiter).await?;
+            ZkTLSProver::new(config.prover, generator, input_builder, guest, submitter).await?;
 
         prover.run().await?;
 
