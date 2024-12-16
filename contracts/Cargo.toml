@@ -1,5 +1,5 @@
 [package]
-name = "t3zktls-contracts"
+name = "t3zktls-contracts-ethereum"
 version.workspace = true
 edition.workspace = true
 

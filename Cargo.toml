@@ -10,7 +10,7 @@ members = [
     "crates/input-builder",
     # "crates/guest-prover-sp1",
     # "crates/guest-prover-r0",
-    # "crates/submiter",
+    "crates/submiter",
 
     "crates/prover",
 
@@ -42,14 +42,16 @@ serde_json = "1.0.132"
 # bytes = "1.7.2"
 # ciborium = "0.2.0"
 
+async-trait = "0.1"
+
 rand_core = "0.6.4"
 rustls = { version = "0.23.13", default-features = false, features = ["std"] }
 rustls-rustcrypto = { git = "https://github.com/the3cloud/rustls-rustcrypto.git" }
 webpki-roots = "0.26.6"
 
-t3zktls-program-core = { git = "https://github.com/the3cloud/zkvm-programs.git", branch = "feat-v1" }
+t3zktls-program-core = { git = "https://github.com/the3cloud/zkvm-programs.git", branch = "main" }
 t3zktls-core = { path = "core", version = "0.1.0" }
-# t3zktls-contracts-ethereum = { path = "contracts", version = "0.1.0" }
+t3zktls-contracts-ethereum = { path = "contracts", version = "0.1.0" }
 # t3zktls-kms-local = { path = "crates/kms/local", version = "0.1.0" }
 # t3zktls-input-builder = { path = "crates/input-builder", version = "0.1.0" }
 # t3zktls-listeners-ethereum = { path = "crates/listeners", version = "0.1.0" }
