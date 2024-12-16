@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use alloy::primitives::B256;
 use anyhow::Result;
 use t3zktls_core::{InputBuilder, RequestGenerator, Submiter, ZkProver};
 use tokio::fs;
@@ -14,6 +15,8 @@ pub struct ZkTLSProver<L, I, G, S> {
 
     loop_number: Option<u64>,
     sleep_duration: u64,
+
+    prover_id: B256,
 
     guest_program: Vec<u8>,
 }
@@ -36,6 +39,8 @@ impl<R, I, G, S> ZkTLSProver<R, I, G, S> {
 
             loop_number: config.loop_number,
             sleep_duration: config.sleep_duration,
+            prover_id: config.prover_id,
+
             guest_program,
         })
     }
@@ -59,7 +64,9 @@ where
                 let input = self.input_builder.build_input(request).await;
 
                 if let Ok(input) = input {
-                    let output = self.guest.prove(input, &self.guest_program).await?;
+                    let mut output = self.guest.prove(input, &self.guest_program).await?;
+
+                    output.prover_id = self.prover_id;
 
                     let submit_result = self.submitter.submit(output).await;
 

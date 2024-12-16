@@ -11,3 +11,5 @@ tokio = { workspace = true, features = ["fs"] }
 serde = { workspace = true }
 
 log = { workspace = true }
+
+alloy = { workspace = true }
