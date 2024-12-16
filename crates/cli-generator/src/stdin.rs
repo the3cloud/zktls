@@ -3,6 +3,7 @@ use t3zktls_core::RequestGenerator;
 use t3zktls_program_core::Request;
 use tokio::io::{self, AsyncBufReadExt};
 
+#[derive(Debug, Default)]
 pub struct StdinGenerator {}
 
 impl StdinGenerator {

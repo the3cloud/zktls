@@ -10,15 +10,20 @@ anyhow = { workspace = true }
 tokio = { workspace = true }
 serde = { workspace = true }
 
-t3zktls-listeners-ethereum = { workspace = true }
 t3zktls-input-builder = { workspace = true }
 t3zktls-guest-prover-sp1 = { workspace = true }
 t3zktls-submiter-ethereum = { workspace = true }
 t3zktls-prover = { workspace = true }
-t3zktls-kms-local = { workspace = true }
+t3zktls-cli-generator = { workspace = true }
 
-alloy = { workspace = true, features = ["signers", "signer-local", "providers", "reqwest", "getrandom"]}
+alloy = { workspace = true, features = [
+    "signers",
+    "signer-local",
+    "providers",
+    "reqwest",
+    "getrandom",
+] }
 toml = { workspace = true }
 
-env_logger = { workspace = true}
+env_logger = { workspace = true }
 toml_edit = { workspace = true }

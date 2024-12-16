@@ -7,10 +7,10 @@ use tokio::fs;
 
 use crate::Config;
 
-pub struct ZkTLSProver<L, I, G, S> {
-    listener: L,
+pub struct ZkTLSProver<G, I, P, S> {
+    generator: G,
     input_builder: I,
-    guest: G,
+    guest: P,
     submitter: S,
 
     loop_number: Option<u64>,
@@ -21,18 +21,18 @@ pub struct ZkTLSProver<L, I, G, S> {
     guest_program: Vec<u8>,
 }
 
-impl<R, I, G, S> ZkTLSProver<R, I, G, S> {
+impl<G, I, P, S> ZkTLSProver<G, I, P, S> {
     pub async fn new(
         config: Config,
-        listener: R,
+        generator: G,
         input_builder: I,
-        guest: G,
+        guest: P,
         submitter: S,
     ) -> Result<Self> {
         let guest_program = fs::read(&config.guest_program_path).await?;
 
         Ok(Self {
-            listener,
+            generator,
             input_builder,
             guest,
             submitter,
@@ -46,17 +46,17 @@ impl<R, I, G, S> ZkTLSProver<R, I, G, S> {
     }
 }
 
-impl<R, I, G, S> ZkTLSProver<R, I, G, S>
+impl<G, I, P, S> ZkTLSProver<G, I, P, S>
 where
-    R: RequestGenerator,
+    G: RequestGenerator,
     I: InputBuilder,
-    G: ZkProver,
+    P: ZkProver,
     S: Submiter,
 {
     pub async fn run(&mut self) -> Result<()> {
         // TODO: Add parallel prove and submiter
         loop {
-            let requests = self.listener.generate_requests().await?;
+            let requests = self.generator.generate_requests().await?;
 
             for request in requests {
                 let request_id = request.request_id()?;

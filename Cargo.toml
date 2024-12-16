@@ -14,7 +14,7 @@ members = [
 
     "crates/prover",
 
-    # "bins/t3zktlsd",
+    "bins/t3zktlsd",
 ]
 
 
@@ -51,17 +51,13 @@ webpki-roots = "0.26.6"
 t3zktls-program-core = { git = "https://github.com/the3cloud/zkvm-programs.git", branch = "main" }
 t3zktls-core = { path = "core", version = "0.1.0" }
 t3zktls-contracts-ethereum = { path = "contracts", version = "0.1.0" }
-# t3zktls-kms-local = { path = "crates/kms/local", version = "0.1.0" }
-# t3zktls-input-builder = { path = "crates/input-builder", version = "0.1.0" }
-# t3zktls-listeners-ethereum = { path = "crates/listeners", version = "0.1.0" }
 t3zktls-recordable-tls = { path = "crates/recordable-tls", version = "0.1.0" }
-# t3zktls-replayable-tls = { path = "program/libs/replayable-tls", version = "0.1.0" }
-# t3zktls-program-r0 = { path = "program/r0", version = "0.1.0", default-features = false }
-# t3zktls-program-sp1 = { path = "program/sp1", version = "0.1.0", default-features = false }
-# t3zktls-guest-prover-sp1 = { path = "crates/guest-prover-sp1", version = "0.1.0" }
-# t3zktls-guest-prover-r0 = { path = "crates/guest-prover-r0", version = "0.1.0" }
-# t3zktls-submiter-ethereum = { path = "crates/submiter", version = "0.1.0" }
-# t3zktls-prover = { path = "crates/prover", version = "0.1.0" }
+
+t3zktls-cli-generator = { path = "crates/cli-generator", version = "0.1.0" }
+t3zktls-input-builder = { path = "crates/input-builder", version = "0.1.0" }
+t3zktls-guest-prover-sp1 = { path = "crates/guest-prover-sp1", version = "0.1.0" }
+t3zktls-prover = { path = "crates/prover", version = "0.1.0" }
+t3zktls-submiter-ethereum = { path = "crates/submiter", version = "0.1.0" }
 
 tokio = "1.41.0"
 
@@ -77,9 +73,9 @@ lru = "0.12.5"
 
 # serde_json = "1.0.132"
 
-# clap = { version = "4.5.20", features = ["derive"] }
+clap = { version = "4.5.20", features = ["derive"] }
 
-# toml = "0.8.19"
-# toml_edit = "0.22.22"
+toml = "0.8.19"
+toml_edit = "0.22.22"
 
 hex = "0.4.3"
