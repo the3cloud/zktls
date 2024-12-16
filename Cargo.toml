@@ -15,7 +15,6 @@ members = [
     "crates/prover",
 
     # "bins/t3zktlsd",
-    # "bins/benchmark-sp1", "bins/benchmark-r0",
 ]
 
 
