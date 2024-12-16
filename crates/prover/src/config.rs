@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Serialize, Deserialize)]
@@ -7,4 +9,6 @@ pub struct Config {
 
     /// The number of loops to run
     pub loop_number: Option<u64>,
+
+    pub guest_program_path: PathBuf,
 }

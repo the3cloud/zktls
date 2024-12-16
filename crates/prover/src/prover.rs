@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use anyhow::Result;
 use t3zktls_core::{InputBuilder, RequestGenerator, Submiter, ZkProver};
+use tokio::fs;
 
 use crate::Config;
 
@@ -11,22 +12,32 @@ pub struct ZkTLSProver<L, I, G, S> {
     guest: G,
     submitter: S,
 
-    config: Config,
+    loop_number: Option<u64>,
+    sleep_duration: u64,
 
-    loop_number: u64,
+    guest_program: Vec<u8>,
 }
 
 impl<R, I, G, S> ZkTLSProver<R, I, G, S> {
-    pub fn new(config: Config, listener: R, input_builder: I, guest: G, submitter: S) -> Self {
-        Self {
-            config,
+    pub async fn new(
+        config: Config,
+        listener: R,
+        input_builder: I,
+        guest: G,
+        submitter: S,
+    ) -> Result<Self> {
+        let guest_program = fs::read(&config.guest_program_path).await?;
+
+        Ok(Self {
             listener,
             input_builder,
             guest,
             submitter,
 
-            loop_number: 0,
-        }
+            loop_number: config.loop_number,
+            sleep_duration: config.sleep_duration,
+            guest_program,
+        })
     }
 }
 
@@ -48,7 +59,7 @@ where
                 let input = self.input_builder.build_input(request).await;
 
                 if let Ok(input) = input {
-                    let output = self.guest.prove(input).await?;
+                    let output = self.guest.prove(input, &self.guest_program).await?;
 
                     let submit_result = self.submitter.submit(output).await;
 
@@ -59,14 +70,15 @@ where
                     log::warn!("build input failed: {:?}", input.err());
                 }
             }
-            if let Some(loop_number) = self.config.loop_number {
-                if self.loop_number >= loop_number {
+            if let Some(loop_number) = &mut self.loop_number {
+                if *loop_number == 0 {
                     break Ok(());
                 }
-            }
-            self.loop_number += 1;
 
-            tokio::time::sleep(Duration::from_secs(self.config.sleep_duration)).await;
+                *loop_number -= 1;
+            }
+
+            tokio::time::sleep(Duration::from_secs(self.sleep_duration)).await;
         }
     }
 }

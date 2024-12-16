@@ -15,7 +15,11 @@ pub trait InputBuilder {
 
 /// Prove the request using the zk prover.
 pub trait ZkProver {
-    fn prove(&mut self, input: GuestInput) -> impl Future<Output = Result<Response>> + Send;
+    fn prove(
+        &mut self,
+        input: GuestInput,
+        guest_program: &[u8],
+    ) -> impl Future<Output = Result<Response>> + Send;
 }
 
 /// Submit the response to the chain.
