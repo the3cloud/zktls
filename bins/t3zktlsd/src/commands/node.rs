@@ -26,6 +26,9 @@ pub struct Cmd {
 
     #[arg(short, long, env)]
     mock_submiter: bool,
+
+    #[arg(short, long, env)]
+    private_key: B256,
 }
 
 async fn download_program(url: &str, path: &Path) -> Result<()> {
@@ -78,7 +81,8 @@ impl Cmd {
 
         let generator = StdinGenerator::default();
 
-        let submiter = ZkTLSSubmiter::new(config.submiter).await?;
+        let submiter =
+            ZkTLSSubmiter::new(config.submiter.build_local_config(self.private_key)).await?;
 
         let submitter = if self.mock_submiter {
             None

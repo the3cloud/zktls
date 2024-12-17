@@ -1,12 +1,12 @@
-[listener]
-# which gateway need to listen
-gateway_address = "0x0000000000000000000000000000000000000000"
-# begin number of block
-begin_block_number = 0
-# batch size of block
-block_number_batch_size = 1000
-# ID of this prover
-prover_id = "0x0000000000000000000000000000000000000000000000000000000000000000"
+# [listener]
+# # which gateway need to listen
+# gateway_address = "0x0000000000000000000000000000000000000000"
+# # begin number of block
+# begin_block_number = 0
+# # batch size of block
+# block_number_batch_size = 1000
+# # ID of this prover
+# prover_id = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
 [input_builder]
 # set regex cache size
@@ -17,6 +17,9 @@ regex_cache_size = 300
 confirmations = 1
 # which gateway need to submit
 gateway_address = "0x0000000000000000000000000000000000000000"
+
+# rpc url
+rpc_url = "https://linea-sepolia.blockpi.network/v1/rpc/03ce6db47019b540f95b8de5070f6d3ea67c0fd2"
 
 [prover]
 # set pull block interval, in seconds.
