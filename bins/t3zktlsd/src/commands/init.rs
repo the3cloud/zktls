@@ -1,9 +1,12 @@
-use std::{fs, path::PathBuf};
+use std::path::PathBuf;
 
 use alloy::primitives::{Address, B256};
 use anyhow::Result;
 use clap::Parser;
+use tokio::fs;
 use toml_edit::DocumentMut;
+
+use crate::config::Config;
 
 #[derive(Debug, Parser)]
 pub struct Cmd {
@@ -16,8 +19,8 @@ pub struct Cmd {
     #[arg(short, long, env)]
     rpc_url: String,
 
-    #[arg(short, long, env)]
-    begin_block_number: i64,
+    #[arg(long, env)]
+    confirmations: Option<u64>,
 }
 
 impl Cmd {
@@ -28,14 +31,32 @@ impl Cmd {
 
         let mut doc = config_str.parse::<DocumentMut>()?;
 
-        doc["listener"]["prover_id"] = prover_id.to_string().into();
-        doc["listener"]["gateway_address"] = self.gateway_address.to_string().into();
-        doc["listener"]["begin_block_number"] = self.begin_block_number.into();
-        doc["prover"]["rpc_url"] = self.rpc_url.into();
+        doc["prover"]["prover_id"] = prover_id.to_string().into();
         doc["submiter"]["gateway_address"] = self.gateway_address.to_string().into();
+        doc["submiter"]["rpc_url"] = self.rpc_url.into();
+
+        let confirmations = if let Some(confirmations) = self.confirmations {
+            confirmations as i64
+        } else {
+            1
+        };
+
+        doc["submiter"]["confirmations"] = confirmations.into();
+
         let res = doc.to_string();
 
-        fs::write(self.config, res)?;
+        let config: Config = toml::from_str(&res)?;
+
+        log::debug!("config: {:#?}", config);
+
+        if self.config.exists() {
+            log::warn!("config file already exists");
+            return Ok(());
+        } else {
+            fs::write(self.config, res).await?;
+        }
+
+        log::info!("init config success");
 
         Ok(())
     }

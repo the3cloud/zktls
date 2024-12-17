@@ -7,7 +7,7 @@ edition.workspace = true
 clap = { workspace = true }
 anyhow = { workspace = true }
 
-tokio = { workspace = true }
+tokio = { workspace = true, features = ["fs"] }
 serde = { workspace = true }
 
 t3zktls-core = { workspace = true }
@@ -30,3 +30,5 @@ env_logger = { workspace = true }
 toml_edit = { workspace = true }
 reqwest = { workspace = true }
 futures-util = { workspace = true }
+
+log = { workspace = true }
