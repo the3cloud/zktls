@@ -1,5 +1,6 @@
 use std::future::Future;
 
+use alloy::primitives::B256;
 use anyhow::Result;
 use t3zktls_program_core::{GuestInput, Request, Response};
 
@@ -18,6 +19,7 @@ pub trait ZkProver {
     fn prove(
         &mut self,
         input: GuestInput,
+        pvkey: B256,
         guest_program: &[u8],
     ) -> impl Future<Output = Result<Response>> + Send;
 }

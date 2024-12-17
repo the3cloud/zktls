@@ -10,6 +10,7 @@ anyhow = { workspace = true }
 tokio = { workspace = true }
 serde = { workspace = true }
 
+t3zktls-core = { workspace = true }
 t3zktls-input-builder = { workspace = true }
 t3zktls-guest-prover-sp1 = { workspace = true }
 t3zktls-submiter-ethereum = { workspace = true }
@@ -27,3 +28,5 @@ toml = { workspace = true }
 
 env_logger = { workspace = true }
 toml_edit = { workspace = true }
+reqwest = { workspace = true }
+futures-util = { workspace = true }

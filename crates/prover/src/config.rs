@@ -14,4 +14,6 @@ pub struct Config {
     pub guest_program_path: PathBuf,
 
     pub prover_id: B256,
+
+    pub pvkey: B256,
 }

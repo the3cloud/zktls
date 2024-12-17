@@ -19,6 +19,8 @@ pub struct ZkTLSProver<G, I, P, S> {
     prover_id: B256,
 
     guest_program: Vec<u8>,
+
+    pvkey: B256,
 }
 
 impl<G, I, P, S> ZkTLSProver<G, I, P, S> {
@@ -42,6 +44,7 @@ impl<G, I, P, S> ZkTLSProver<G, I, P, S> {
             prover_id: config.prover_id,
 
             guest_program,
+            pvkey: config.pvkey,
         })
     }
 }
@@ -64,7 +67,10 @@ where
                 let input = self.input_builder.build_input(request).await;
 
                 if let Ok(input) = input {
-                    let mut output = self.guest.prove(input, &self.guest_program).await?;
+                    let mut output = self
+                        .guest
+                        .prove(input, self.pvkey.clone(), &self.guest_program)
+                        .await?;
 
                     output.prover_id = self.prover_id;
 
