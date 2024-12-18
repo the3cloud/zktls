@@ -1,15 +1,17 @@
-#![allow(clippy::too_many_arguments)]
-
 use alloy::sol;
 
-sol!(
+sol! {
     #[sol(rpc)]
-    IZkTLSGateway,
-    "../target/contracts/IZkTLSGateway.sol/IZkTLSGateway.json"
-);
-
-sol!(
-    #[sol(rpc)]
-    ZkTLSGateway,
-    "../target/contracts/ZkTLSGateway.sol/ZkTLSGateway.json"
-);
+    interface ZkTLSGateway {
+        function deliverResponse(
+            bytes calldata proof_,
+            bytes32 proverId_,
+            bytes32 responseId_,
+            address client_,
+            bytes32 dapp_,
+            uint64 maxGasPrice_,
+            uint64 gasLimit_,
+            bytes calldata responses_
+        ) external;
+    }
+}

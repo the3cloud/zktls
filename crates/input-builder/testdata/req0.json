@@ -1,0 +1,27 @@
+{
+    "request": "0x",
+    "remote_addr": "httpbin.org:443",
+    "server_name": "httpbin.org",
+    "response_template": [
+        {
+            "type": "offset",
+            "begin": 123,
+            "length": 2
+        },
+        {
+            "type": "regex",
+            "pattern": ".*"
+        }
+    ],
+    "origin": {
+        "type": "secp256k1",
+        "signature": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "v": true,
+        "nonce": 0
+    },
+    "client": {
+        "client": "0x0000000000000000000000000000000000000000",
+        "max_gas_price": 1000000000000000,
+        "max_gas_limit": 1000000000000000
+    }
+}

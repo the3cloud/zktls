@@ -4,10 +4,10 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-sp1-sdk = { version = "3.0.0" }
+sp1-sdk = { version = "3.4.0" }
 
-t3zktls-program-sp1 = { workspace = true }
 t3zktls-core = { workspace = true }
+t3zktls-program-core = { workspace = true }
 
 ciborium.workspace = true
 
@@ -16,6 +16,10 @@ anyhow = { workspace = true }
 tokio = { workspace = true }
 
 alloy = { workspace = true, features = ["sol-types"] }
+
+log = { workspace = true }
+
+hex = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true }

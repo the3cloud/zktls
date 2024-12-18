@@ -5,6 +5,3 @@ edition.workspace = true
 
 [dependencies]
 alloy = { workspace = true, features = ["sol-types", "contract"] }
-
-[build-dependencies]
-# t3-zktls-program = { workspace = true, features = ["r0-backend"] }

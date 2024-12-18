@@ -7,18 +7,18 @@ use std::{
 
 use anyhow::Result;
 use rustls::{ClientConfig, ClientConnection, RootCertStore};
-use t3zktls_core::{GuestInputRequest, GuestInputResponse};
+use t3zktls_program_core::{GuestInputResponse, Request};
 use t3zktls_recordable_tls::{crypto_provider, time_provider, RecordableStream};
 
-pub fn request_tls_call(request: GuestInputRequest) -> Result<GuestInputResponse> {
+pub fn request_tls_call(request: &Request) -> Result<GuestInputResponse> {
     let res = panic::catch_unwind(move || _request_tls_call(request))
         .map_err(|e| anyhow::anyhow!("{:?}", e))??;
 
     Ok(res)
 }
 
-fn _request_tls_call(request: GuestInputRequest) -> Result<GuestInputResponse> {
-    let stream = TcpStream::connect(&request.url)?;
+fn _request_tls_call(request: &Request) -> Result<GuestInputResponse> {
+    let stream = TcpStream::connect(&request.remote_addr)?;
     let mut recordable_stream = RecordableStream::new(stream);
 
     let root_store = RootCertStore {
@@ -42,12 +42,13 @@ fn _request_tls_call(request: GuestInputRequest) -> Result<GuestInputResponse> {
 
     let mut tls = rustls::Stream::new(&mut tls_stream, &mut recordable_stream);
 
-    let request_data = request.request.data()?;
+    let request_data = request.request.as_ref();
 
     tls.write_all(&request_data)?;
 
     let mut buf = Vec::new();
     tls.read_to_end(&mut buf)?;
+    tls.flush()?;
 
     recordable_stream.flush()?;
 

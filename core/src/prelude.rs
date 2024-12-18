@@ -1,51 +1,30 @@
-use alloy::primitives::Bytes;
-use anyhow::Result;
 use std::future::Future;
 
-use crate::{GuestInput, GuestOutput, ProveRequest, ProveResponse};
+use alloy::primitives::B256;
+use anyhow::Result;
+use t3zktls_program_core::{GuestInput, Request, Response};
 
-pub trait Listener {
-    fn pull(&mut self) -> impl Future<Output = Result<Vec<ProveRequest>>> + Send;
+/// Generate a request from the listener.
+pub trait RequestGenerator {
+    fn generate_requests(&mut self) -> impl Future<Output = Result<Vec<Request>>> + Send;
 }
 
+/// Build the input for the zktls program.
 pub trait InputBuilder {
-    fn build_input(
-        &mut self,
-        request: ProveRequest,
-    ) -> impl Future<Output = Result<GuestInput>> + Send;
+    fn build_input(&mut self, request: Request) -> impl Future<Output = Result<GuestInput>> + Send;
 }
 
-pub trait GuestProver {
+/// Prove the request using the zk prover.
+pub trait ZkProver {
     fn prove(
         &mut self,
-        guest_input: GuestInput,
-    ) -> impl Future<Output = Result<(GuestOutput, Vec<u8>)>> + Send;
+        input: GuestInput,
+        pvkey: B256,
+        guest_program: &[u8],
+    ) -> impl Future<Output = Result<Response>> + Send;
 }
 
+/// Submit the response to the chain.
 pub trait Submiter {
-    fn submit(&mut self, prove_response: ProveResponse) -> impl Future<Output = Result<()>> + Send;
-}
-
-pub trait TLSDataDecryptorGenerator {
-    type Decryptor: TLSDataDecryptor;
-
-    fn generate_decryptor(
-        &self,
-        encrypted_public_key: &Bytes,
-    ) -> impl Future<Output = Result<Self::Decryptor>> + Send;
-}
-
-/// Trait for decrypting TLS data
-pub trait TLSDataDecryptor {
-    /// Decodes TLS data
-    ///
-    /// # Arguments
-    ///
-    /// * `data` - The data to decode
-    /// * `encrypted_key` - The encrypted key for decoding
-    ///
-    /// # Returns
-    ///
-    /// A future that resolves to a Result
-    fn decrypt_tls_data(&mut self, data: &mut Vec<u8>) -> impl Future<Output = Result<()>> + Send;
+    fn submit(&mut self, response: Response) -> impl Future<Output = Result<()>> + Send;
 }

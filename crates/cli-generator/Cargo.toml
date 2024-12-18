@@ -1,0 +1,13 @@
+[package]
+name = "t3zktls-cli-generator"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+t3zktls-core = { workspace = true }
+t3zktls-program-core = { workspace = true }
+
+anyhow = { workspace = true }
+tokio = { workspace = true, features = ["io-std"] }
+
+serde_json = { workspace = true }

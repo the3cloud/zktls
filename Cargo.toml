@@ -1,30 +1,22 @@
 [workspace]
 resolver = "2"
 members = [
+    "contracts",
     "core",
 
-    "contracts",
-    "crates/kms/local",
     "crates/recordable-tls",
 
-    "crates/listeners",
+    "crates/cli-generator",
     "crates/input-builder",
     "crates/guest-prover-sp1",
-    "crates/guest-prover-r0",
+    # "crates/guest-prover-r0",
     "crates/submiter",
 
     "crates/prover",
 
-    "program/libs/tls",
-    "program/libs/replayable-tls",
-
-    "program/sp1",
-    "program/r0",
-
-
     "bins/t3zktlsd",
-    "bins/benchmark-sp1", "bins/benchmark-r0",
 ]
+
 
 exclude = ["program/sp1/tls-sp1", "program/risc0/tls-r0"]
 
@@ -33,56 +25,50 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace.dependencies]
-once_cell = "1.19.0"
 anyhow = "1.0.91"
 log = "0.4.22"
 env_logger = "0.11.5"
+
+alloy = "0.7"
+
+once_cell = "1.19.0"
 
 serde = { version = "1.0.214", default-features = false, features = [
     "alloc",
     "derive",
 ] }
-bytes = "1.7.2"
+serde_json = "1.0.132"
+# bytes = "1.7.2"
 ciborium = "0.2.0"
+
+async-trait = "0.1"
 
 rand_core = "0.6.4"
 rustls = { version = "0.23.13", default-features = false, features = ["std"] }
 rustls-rustcrypto = { git = "https://github.com/the3cloud/rustls-rustcrypto.git" }
 webpki-roots = "0.26.6"
 
-alloy = "0.6"
-
-t3zktls-contracts-ethereum = { path = "contracts", version = "0.1.0" }
-t3zktls-kms-local = { path = "crates/kms/local", version = "0.1.0" }
-t3zktls-input-builder = { path = "crates/input-builder", version = "0.1.0" }
-t3zktls-listeners-ethereum = { path = "crates/listeners", version = "0.1.0" }
-t3zktls-recordable-tls = { path = "crates/recordable-tls", version = "0.1.0" }
+t3zktls-program-core = { git = "https://github.com/the3cloud/zkvm-programs.git", branch = "main" }
 t3zktls-core = { path = "core", version = "0.1.0" }
-t3zktls-replayable-tls = { path = "program/libs/replayable-tls", version = "0.1.0" }
-t3zktls-program-r0 = { path = "program/r0", version = "0.1.0", default-features = false }
-t3zktls-program-sp1 = { path = "program/sp1", version = "0.1.0", default-features = false }
+t3zktls-contracts-ethereum = { path = "contracts", version = "0.1.0" }
+t3zktls-recordable-tls = { path = "crates/recordable-tls", version = "0.1.0" }
+
+t3zktls-cli-generator = { path = "crates/cli-generator", version = "0.1.0" }
+t3zktls-input-builder = { path = "crates/input-builder", version = "0.1.0" }
 t3zktls-guest-prover-sp1 = { path = "crates/guest-prover-sp1", version = "0.1.0" }
-t3zktls-guest-prover-r0 = { path = "crates/guest-prover-r0", version = "0.1.0" }
-t3zktls-submiter-ethereum = { path = "crates/submiter", version = "0.1.0" }
 t3zktls-prover = { path = "crates/prover", version = "0.1.0" }
+t3zktls-submiter-ethereum = { path = "crates/submiter", version = "0.1.0" }
 
 tokio = "1.41.0"
 
-k256 = "0.13.4"
-aes-gcm = { version = "0.10.3", default-features = false }
-sha2 = "0.10.8"
-
 regex = "1.11.1"
 lru = "0.12.5"
-
-xrust = "1.2.0"
-jsonpath-rust = "0.7.3"
-
-serde_json = "1.0.132"
 
 clap = { version = "4.5.20", features = ["derive"] }
 
 toml = "0.8.19"
 toml_edit = "0.22.22"
 
-# hex = "0.4.3"
+hex = "0.4.3"
+reqwest = "0.12.1"
+futures-util = "0.3.31"

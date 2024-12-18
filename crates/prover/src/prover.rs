@@ -1,80 +1,93 @@
-use std::time::Duration;
-
+use alloy::primitives::B256;
 use anyhow::Result;
-use t3zktls_core::{GuestProver, InputBuilder, Listener, ProveResponse, Submiter};
+use t3zktls_core::{InputBuilder, RequestGenerator, Submiter, ZkProver};
+use tokio::fs;
 
 use crate::Config;
 
-pub struct ZkTLSProver<L, I, G, S> {
-    listener: L,
+pub struct ZkTLSProver<G, I, P, S> {
+    generator: G,
     input_builder: I,
-    guest: G,
-    submitter: S,
+    guest: P,
+    submitter: Option<S>,
 
-    config: Config,
+    prover_id: B256,
 
-    loop_number: u64,
+    guest_program: Vec<u8>,
+
+    pvkey: B256,
 }
 
-impl<L, I, G, S> ZkTLSProver<L, I, G, S> {
-    pub fn new(config: Config, listener: L, input_builder: I, guest: G, submitter: S) -> Self {
-        Self {
-            config,
-            listener,
+impl<G, I, P, S> ZkTLSProver<G, I, P, S> {
+    pub async fn new(
+        config: Config,
+        generator: G,
+        input_builder: I,
+        guest: P,
+        submitter: Option<S>,
+    ) -> Result<Self> {
+        let guest_program = fs::read(&config.guest_program_path).await?;
+
+        Ok(Self {
+            generator,
             input_builder,
             guest,
             submitter,
 
-            loop_number: 0,
-        }
+            prover_id: config.prover_id,
+
+            guest_program,
+            pvkey: config.pvkey,
+        })
     }
 }
 
-impl<L, I, G, S> ZkTLSProver<L, I, G, S>
+impl<G, I, P, S> ZkTLSProver<G, I, P, S>
 where
-    L: Listener,
+    G: RequestGenerator,
     I: InputBuilder,
-    G: GuestProver,
+    P: ZkProver,
     S: Submiter,
 {
     pub async fn run(&mut self) -> Result<()> {
-        loop {
-            let requests = self.listener.pull().await?;
+        let requests = self.generator.generate_requests().await?;
 
-            for request in requests {
-                let request_id = request.request_id;
+        for request in requests {
+            let request_id = request.request_id()?;
 
-                let input = self.input_builder.build_input(request).await;
+            log::info!("request id: {}", request_id);
 
-                if let Ok(input) = input {
-                    let (output, proof) = self.guest.prove(input).await?;
+            let input = self.input_builder.build_input(request).await;
 
-                    let submit_result = self
-                        .submitter
-                        .submit(ProveResponse {
-                            request_id,
-                            response_data: output.response_data.into(),
-                            request_hash: output.request_hash.into(),
-                            proof: proof.into(),
-                        })
-                        .await;
+            if let Ok(input) = input {
+                let mut output = self
+                    .guest
+                    .prove(input, self.pvkey.clone(), &self.guest_program)
+                    .await?;
+
+                output.prover_id = self.prover_id;
+
+                log::info!(
+                    "Submiting output for request id: {}, client is: {}, dapp hash is: {}, with max gas price: {} and max gas limit: {}",
+                    output.request_id,
+                    output.client,
+                    output.dapp,
+                    output.max_gas_price,
+                    output.max_gas_limit
+                );
+
+                if let Some(submitter) = &mut self.submitter {
+                    let submit_result = submitter.submit(output).await;
 
                     if let Err(e) = submit_result {
                         log::warn!("Submit proof failed: {}, {}", request_id, e);
                     }
-                } else {
-                    log::warn!("build input failed: {:?}", input.err());
                 }
+            } else {
+                log::warn!("build input failed: {:?}", input.err());
             }
-
-            if let Some(loop_number) = self.config.loop_number {
-                if self.loop_number >= loop_number {
-                    break Ok(());
-                }
-            }
-            self.loop_number += 1;
-
-            tokio::time::sleep(Duration::from_secs(self.config.sleep_duration)).await;
         }
+
+        Ok(())
     }
 }

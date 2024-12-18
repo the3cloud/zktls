@@ -1,63 +1,71 @@
+use std::{str::FromStr, sync::Arc};
+
 use alloy::{
-    network::{Network, ReceiptResponse},
+    network::{Ethereum, EthereumWallet},
     primitives::Address,
-    providers::Provider,
-    transports::Transport,
+    providers::{Provider, ProviderBuilder},
+    transports::http::{reqwest::Url, Client, Http},
 };
 use anyhow::Result;
-use t3zktls_contracts_ethereum::IZkTLSGateway;
-use t3zktls_core::{ProveResponse, Submiter};
+use t3zktls_contracts_ethereum::ZkTLSGateway;
+use t3zktls_core::Submiter;
+use t3zktls_program_core::Response;
 
 use crate::Config;
 
-pub struct ZkTLSSubmiter<P, T, N> {
+pub struct ZkTLSSubmiter {
     gateway_address: Address,
     confirmations: u64,
-    provider: P,
-    _marker: std::marker::PhantomData<(T, N)>,
+    provider: Arc<dyn Provider<Http<Client>, Ethereum>>,
 }
 
-impl<P, T, N> ZkTLSSubmiter<P, T, N> {
-    pub fn new(provider: P, config: Config) -> Self {
-        Self {
+impl ZkTLSSubmiter {
+    pub async fn new(config: Config) -> Result<Self> {
+        let signer = config.signer.signer().await?;
+        let wallet = EthereumWallet::new(signer);
+
+        let provider = ProviderBuilder::new()
+            .network::<Ethereum>()
+            .with_recommended_fillers()
+            .wallet(wallet)
+            .on_http(Url::from_str(&config.rpc_url)?);
+
+        let provider: Arc<dyn Provider<Http<Client>, Ethereum>> = Arc::new(provider);
+
+        Ok(Self {
             gateway_address: config.gateway_address,
             confirmations: config.confirmations,
             provider,
-            _marker: std::marker::PhantomData,
-        }
+        })
     }
 }
 
-impl<P, T, N> Submiter for ZkTLSSubmiter<P, T, N>
-where
-    P: Provider<T, N>,
-    T: Transport + Clone,
-    N: Network,
-{
-    async fn submit(&mut self, prove_response: ProveResponse) -> Result<()> {
-        log::info!("Submitting proof: {:#?}", prove_response);
+impl Submiter for ZkTLSSubmiter {
+    async fn submit(&mut self, response: Response) -> Result<()> {
+        log::info!("Submitting proof: {:#?}", response);
 
-        Self::submit(self, prove_response).await?;
+        Self::_submit(self, response).await?;
 
         Ok(())
     }
 }
 
-impl<P, T, N> ZkTLSSubmiter<P, T, N>
-where
-    P: Provider<T, N>,
-    T: Transport + Clone,
-    N: Network,
-{
-    async fn submit(&mut self, prove_response: ProveResponse) -> Result<()> {
-        let contract = IZkTLSGateway::new(self.gateway_address, &self.provider);
+impl ZkTLSSubmiter {
+    async fn _submit(&mut self, response: Response) -> Result<()> {
+        let provider = self.provider.clone();
+
+        let contract = ZkTLSGateway::new(self.gateway_address, provider.root());
 
         let receipt = contract
-            .deliveryResponse(
-                prove_response.request_id,
-                prove_response.request_hash,
-                prove_response.response_data,
-                prove_response.proof,
+            .deliverResponse(
+                response.proof.into(),
+                response.prover_id,
+                response.request_id,
+                response.client,
+                response.dapp,
+                response.max_gas_price.into(),
+                response.max_gas_limit,
+                response.response.into(),
             )
             .send()
             .await?
@@ -65,7 +73,7 @@ where
             .get_receipt()
             .await?;
 
-        log::info!("Submitted proof: {}", receipt.transaction_hash());
+        log::info!("Submitted proof: {}", receipt.transaction_hash);
 
         Ok(())
     }
