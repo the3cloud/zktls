@@ -18,7 +18,7 @@ impl StdinGenerator {
             requests.push(request);
         }
 
-        Ok(requests)
+        Ok(vec![])
     }
 }
 

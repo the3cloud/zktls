@@ -13,6 +13,7 @@ use t3zktls_core::ZkProver;
 use t3zktls_guest_prover_sp1::SP1GuestProver;
 use t3zktls_prover::ZkTLSProver;
 use t3zktls_submiter_ethereum::ZkTLSSubmiter;
+use tokio::fs;
 
 use crate::config::Config;
 
@@ -21,10 +22,10 @@ pub struct Cmd {
     #[arg(short, long, env)]
     config: PathBuf,
 
-    #[arg(short, long, env)]
+    #[arg(long, env)]
     mock_prover: bool,
 
-    #[arg(short, long, env)]
+    #[arg(long, env)]
     mock_submiter: bool,
 
     #[arg(short, long, env)]
@@ -52,14 +53,21 @@ async fn build_sp1_prover(path: PathBuf, mock: bool) -> Result<(impl ZkProver, P
         guest = guest.mock();
     }
 
-    download_program(
-        "https://github.com/the3cloud/zkvm-programs/releases/download/v0.1.0-alpha/zktls-sp1",
-        &file,
-    )
-    .await?;
+    let url = "https://github.com/the3cloud/zkvm-programs/releases/download/v0.1.1-alpha/zktls-sp1";
+
+    if !file.exists() {
+        log::info!("downloading program from {}", url);
+        download_program(url, &file).await?;
+        log::info!("downloaded program success {}", file.display());
+    } else {
+        log::info!(
+            "program already exists {}, if you want to download again, please remove it",
+            file.display()
+        );
+    }
 
     let pvkey =
-        B256::from_hex("0x00941988634b99034c32a3dc7244baef6b14302100b0a38fcff7389a6775810c")?;
+        B256::from_hex("0x0099bc13165c9012dc74e6ad01d6a3e9047db71befedfa4dfbd98da98df504c5")?;
 
     Ok((guest, file, pvkey))
 }
@@ -70,6 +78,8 @@ impl Cmd {
 
         let dir = env::var("HOME")?;
         let dir = Path::new(&dir).join(".local").join("t3zktlsd");
+
+        fs::create_dir_all(&dir).await?;
 
         // TODO: Add r0
         let (guest, file, pvkey) = build_sp1_prover(dir, self.mock_prover).await?;
