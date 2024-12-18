@@ -89,7 +89,7 @@ pub fn prove(
     }
 
     let (request_id, client, dapp, max_gas_price, max_gas_limit, response) =
-        GuestOutputABIType::abi_decode(&output, false)?;
+        GuestOutputABIType::abi_decode_sequence(&output, false)?;
 
     Ok(Response {
         request_id,

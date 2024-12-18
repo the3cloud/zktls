@@ -53,7 +53,7 @@ async fn build_sp1_prover(path: PathBuf, mock: bool) -> Result<(impl ZkProver, P
         guest = guest.mock();
     }
 
-    let url = "https://github.com/the3cloud/zkvm-programs/releases/download/v0.1.1-alpha/zktls-sp1";
+    let url = "https://github.com/the3cloud/zkvm-programs/releases/download/v0.1.0-alpha/zktls-sp1";
 
     if !file.exists() {
         log::info!("downloading program from {}", url);
@@ -67,7 +67,7 @@ async fn build_sp1_prover(path: PathBuf, mock: bool) -> Result<(impl ZkProver, P
     }
 
     let pvkey =
-        B256::from_hex("0x0099bc13165c9012dc74e6ad01d6a3e9047db71befedfa4dfbd98da98df504c5")?;
+        B256::from_hex("0x002c1167a4d8dd15018ac2d333a23e21f6aeaf0e28ff93ad67926588b26fccd4")?;
 
     Ok((guest, file, pvkey))
 }

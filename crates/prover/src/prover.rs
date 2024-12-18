@@ -55,6 +55,8 @@ where
         for request in requests {
             let request_id = request.request_id()?;
 
+            log::info!("request id: {}", request_id);
+
             let input = self.input_builder.build_input(request).await;
 
             if let Ok(input) = input {
@@ -64,6 +66,15 @@ where
                     .await?;
 
                 output.prover_id = self.prover_id;
+
+                log::info!(
+                    "Submiting output for request id: {}, client is: {}, dapp hash is: {}, with max gas price: {} and max gas limit: {}",
+                    output.request_id,
+                    output.client,
+                    output.dapp,
+                    output.max_gas_price,
+                    output.max_gas_limit
+                );
 
                 if let Some(submitter) = &mut self.submitter {
                     let submit_result = submitter.submit(output).await;

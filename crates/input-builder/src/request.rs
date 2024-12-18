@@ -44,8 +44,6 @@ fn _request_tls_call(request: &Request) -> Result<GuestInputResponse> {
 
     let request_data = request.request.as_ref();
 
-    println!("request_data: {}", String::from_utf8_lossy(request_data));
-
     tls.write_all(&request_data)?;
 
     let mut buf = Vec::new();
