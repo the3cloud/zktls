@@ -7,7 +7,7 @@ edition.workspace = true
 clap = { workspace = true }
 anyhow = { workspace = true }
 
-tokio = { workspace = true, features = ["fs"] }
+tokio = { workspace = true, features = ["fs", "io-util"] }
 serde = { workspace = true }
 
 t3zktls-core = { workspace = true }
@@ -16,6 +16,8 @@ t3zktls-guest-prover-sp1 = { workspace = true }
 t3zktls-submiter-ethereum = { workspace = true }
 t3zktls-prover = { workspace = true }
 t3zktls-cli-generator = { workspace = true }
+
+t3zktls-contracts-ethereum = { workspace = true }
 
 alloy = { workspace = true, features = [
     "signers",
