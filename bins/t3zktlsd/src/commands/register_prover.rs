@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use alloy::primitives::{Address, B256};
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use clap::Parser;
 use t3zktls_contracts_ethereum::{MockVerifier, Sp1Verifier, ZkTLSGateway};
 use t3zktls_submiter_ethereum::ZkTLSSubmiter;
@@ -16,7 +16,6 @@ pub struct Cmd {
     /// private key of the prover
     ///
     /// If not provided, the private key will be read from the environment variable `PRIVATE_KEY`
-    /// If no submitter address is provided, the submitter will be generated from the private key
     #[arg(short, long, env)]
     private_key: B256,
 
@@ -29,12 +28,18 @@ pub struct Cmd {
     #[arg(long, env, group = "verifier")]
     mock: bool,
 
+    /// ZkVM Verifier address
+    ///
+    /// Must set in SP1 and Risc0 mode
     #[arg(short, long, env)]
-    verifier_address: Address,
+    verifier_address: Option<Address>,
 
     #[arg(short, long, env)]
     beneficiary: Address,
 
+    /// Submitter address
+    ///
+    /// If no submitter address is provided, the submitter will be generated from the private key
     #[arg(short, long, env)]
     submitter_address: Option<Address>,
 }
@@ -51,13 +56,17 @@ impl Cmd {
         if self.sp1 {
             let (_, _, pvkey) = build_sp1_prover(true).await?;
 
-            let verifier_receipt =
-                Sp1Verifier::deploy_builder(submiter.root_provider(), self.verifier_address, pvkey)
-                    .send()
-                    .await?
-                    .with_required_confirmations(submiter.confirmations())
-                    .get_receipt()
-                    .await?;
+            let verifier_receipt = Sp1Verifier::deploy_builder(
+                submiter.root_provider(),
+                self.verifier_address
+                    .ok_or(anyhow!("Must set SP1 Verifier address"))?,
+                pvkey,
+            )
+            .send()
+            .await?
+            .with_required_confirmations(submiter.confirmations())
+            .get_receipt()
+            .await?;
 
             let verifier_address = verifier_receipt
                 .contract_address
@@ -106,6 +115,7 @@ impl Cmd {
                 .contract_address
                 .ok_or(anyhow::anyhow!("No contract address found"))?;
             let tx_hash = verifier_receipt.transaction_hash;
+
             log::info!(
                 "Deployed mock verifier on: {} at tx: {}",
                 verifier_address,
