@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, fs};
 
 use alloy::{
     hex::FromHex,
@@ -8,7 +8,7 @@ use alloy::{
 use t3zktls_program_core::{Origin, Request, RequestClient, ResponseTemplate, Secp256k1Origin};
 
 fn main() {
-    let private_key_str = env::var("TEST_PRIVATE_KEY").unwrap();
+    let private_key_str = env::var("SUBMITER_PRIVATE_KEY").unwrap();
     let private_key = B256::from_hex(&private_key_str).unwrap();
 
     let signer = LocalSigner::from_bytes(&private_key).unwrap();
@@ -22,13 +22,16 @@ fn main() {
 
     let origin = Origin::None;
 
+    let client_str = env::var("CLIENT_ADDRESS").unwrap();
+    let client = Address::from_hex(&client_str).unwrap();
+
     let mut request = Request {
         request: request.into(),
         remote_addr: "httpbin.org:443".into(),
         server_name: "httpbin.org".into(),
         response_template,
         client: RequestClient {
-            client: Address::default(),
+            client,
             max_gas_price: 1000000000000000000,
             max_gas_limit: 0,
         },
@@ -49,5 +52,5 @@ fn main() {
 
     let s = serde_json::to_string(&request).unwrap();
 
-    println!("{}", s);
+    fs::write("./target/input.json", s).unwrap();
 }
