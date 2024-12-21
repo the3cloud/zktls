@@ -3,6 +3,7 @@ use clap::{Parser, Subcommand};
 
 mod init;
 mod node;
+mod register_prover;
 
 #[derive(Debug, Parser)]
 pub struct Cmd {
@@ -17,6 +18,9 @@ pub enum SubCmd {
 
     /// Running prove node
     Node(node::Cmd),
+
+    /// Register prover on the gateway
+    RegisterProver(register_prover::Cmd),
 }
 
 impl Cmd {
@@ -24,6 +28,7 @@ impl Cmd {
         match self.subcommand {
             SubCmd::Init(c) => c.execute().await,
             SubCmd::Node(cmd) => cmd.execute().await,
+            SubCmd::RegisterProver(cmd) => cmd.execute().await,
         }
     }
 }

@@ -3,7 +3,7 @@ use std::{str::FromStr, sync::Arc};
 use alloy::{
     network::{Ethereum, EthereumWallet},
     primitives::Address,
-    providers::{Provider, ProviderBuilder},
+    providers::{Provider, ProviderBuilder, RootProvider},
     transports::http::{reqwest::Url, Client, Http},
 };
 use anyhow::Result;
@@ -17,11 +17,16 @@ pub struct ZkTLSSubmiter {
     gateway_address: Address,
     confirmations: u64,
     provider: Arc<dyn Provider<Http<Client>, Ethereum>>,
+
+    signer_address: Address,
 }
 
 impl ZkTLSSubmiter {
     pub async fn new(config: Config) -> Result<Self> {
         let signer = config.signer.signer().await?;
+
+        let signer_address = signer.address();
+
         let wallet = EthereumWallet::new(signer);
 
         let provider = ProviderBuilder::new()
@@ -36,7 +41,24 @@ impl ZkTLSSubmiter {
             gateway_address: config.gateway_address,
             confirmations: config.confirmations,
             provider,
+            signer_address,
         })
+    }
+
+    pub fn root_provider(&self) -> &RootProvider<Http<Client>, Ethereum> {
+        self.provider.root()
+    }
+
+    pub fn confirmations(&self) -> u64 {
+        self.confirmations
+    }
+
+    pub fn gateway_address(&self) -> Address {
+        self.gateway_address
+    }
+
+    pub fn signer_address(&self) -> Address {
+        self.signer_address
     }
 }
 
@@ -52,9 +74,7 @@ impl Submiter for ZkTLSSubmiter {
 
 impl ZkTLSSubmiter {
     async fn _submit(&mut self, response: Response) -> Result<()> {
-        let provider = self.provider.clone();
-
-        let contract = ZkTLSGateway::new(self.gateway_address, provider.root());
+        let contract = ZkTLSGateway::new(self.gateway_address, self.root_provider());
 
         let receipt = contract
             .deliverResponse(
