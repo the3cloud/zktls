@@ -12,4 +12,6 @@ pub struct Config {
 
     #[serde(skip)]
     pub pvkey: B256,
+
+    pub loop_count: Option<u64>,
 }

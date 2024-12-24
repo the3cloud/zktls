@@ -16,6 +16,8 @@ pub struct ZkTLSProver<G, I, P, S> {
     guest_program: Vec<u8>,
 
     pvkey: B256,
+
+    loop_count: Option<u64>,
 }
 
 impl<G, I, P, S> ZkTLSProver<G, I, P, S> {
@@ -38,6 +40,8 @@ impl<G, I, P, S> ZkTLSProver<G, I, P, S> {
 
             guest_program,
             pvkey: config.pvkey,
+
+            loop_count: config.loop_count,
         })
     }
 }
@@ -50,24 +54,25 @@ where
     S: Submiter,
 {
     pub async fn run(&mut self) -> Result<()> {
-        let requests = self.generator.generate_requests().await?;
+        loop {
+            let requests = self.generator.generate_requests().await?;
 
-        for request in requests {
-            let request_id = request.request_id()?;
+            for request in requests {
+                let request_id = request.request_id()?;
 
-            log::info!("request id: {}", request_id);
+                log::info!("request id: {}", request_id);
 
-            let input = self.input_builder.build_input(request).await;
+                let input = self.input_builder.build_input(request).await;
 
-            if let Ok(input) = input {
-                let mut output = self
-                    .guest
-                    .prove(input, self.pvkey.clone(), &self.guest_program)
-                    .await?;
+                if let Ok(input) = input {
+                    let mut output = self
+                        .guest
+                        .prove(input, self.pvkey.clone(), &self.guest_program)
+                        .await?;
 
-                output.prover_id = self.prover_id;
+                    output.prover_id = self.prover_id;
 
-                log::info!(
+                    log::info!(
                     "Submiting output for request id: {}, client is: {}, dapp hash is: {}, with max gas price: {} and max gas limit: {}",
                     output.request_id,
                     output.client,
@@ -76,15 +81,24 @@ where
                     output.max_gas_limit
                 );
 
-                if let Some(submitter) = &mut self.submitter {
-                    let submit_result = submitter.submit(output).await;
+                    if let Some(submitter) = &mut self.submitter {
+                        let submit_result = submitter.submit(output).await;
 
-                    if let Err(e) = submit_result {
-                        log::warn!("Submit proof failed: {}, {}", request_id, e);
+                        if let Err(e) = submit_result {
+                            log::warn!("Submit proof failed: {}, {}", request_id, e);
+                        }
                     }
+                } else {
+                    log::warn!("build input failed: {:?}", input.err());
                 }
-            } else {
-                log::warn!("build input failed: {:?}", input.err());
+            }
+
+            if let Some(loop_count) = &mut self.loop_count {
+                *loop_count -= 1;
+
+                if *loop_count == 0 {
+                    break;
+                }
             }
         }
 
