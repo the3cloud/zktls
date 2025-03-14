@@ -18,7 +18,7 @@ TLS is a widely used foundational internet protocol that ensures the security an
   - [sp1](https://docs.succinct.xyz/getting-started/install.html)
   - [CUDA Docker Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) (optional)
 
-## Setup Project
+## Usage
 
 1. Clone the repo
 
@@ -29,8 +29,16 @@ git clone https://github.com/the3cloud/zktls.git
 2. Compile the project
 
 ```bash
-cargo b && cargo t && cargo c && cargo d --no-deps
+cargo b && cargo t && cargo c
 ```
+
+3. Run zktls in command listens
+
+```bash
+cargo run --bin zktls -- prove --input-request-file <path-to-request> --target-chain <target-chain> --mock
+```
+
+- target-chain: `evm`, `solana`
 
 ## Future Work
 
