@@ -1,13 +1,8 @@
 use std::future::Future;
 
-use alloy::primitives::B256;
+use alloy_primitives::B256;
 use anyhow::Result;
-use t3zktls_program_core::{GuestInput, Request, Response};
-
-/// Generate a request from the listener.
-pub trait RequestGenerator {
-    fn generate_requests(&mut self) -> impl Future<Output = Result<Vec<Request>>> + Send;
-}
+use zktls_program_core::{GuestInput, Request, Response};
 
 /// Build the input for the zktls program.
 pub trait InputBuilder {
@@ -22,9 +17,4 @@ pub trait ZkProver {
         pvkey: B256,
         guest_program: &[u8],
     ) -> impl Future<Output = Result<Response>> + Send;
-}
-
-/// Submit the response to the chain.
-pub trait Submiter {
-    fn submit(&mut self, response: Response) -> impl Future<Output = Result<()>> + Send;
 }

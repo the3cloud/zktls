@@ -38,7 +38,13 @@ cargo b && cargo t && cargo c
 cargo run --bin zktls -- prove --input-request-file <path-to-request> --target-chain <target-chain> --mock
 ```
 
-- target-chain: `evm`, `solana`
+4. Export verifier contract
+
+```bash
+cargo run --bin zktls -- export-verifier --target-chain <target-chain>
+```
+
+- target-chain: `evm`, `solana`, `sui`, `aptos`, `ton`
 
 ## Future Work
 
