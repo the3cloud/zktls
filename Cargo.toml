@@ -6,7 +6,7 @@ members = [ "bins/zktls",
     # "crates/cli-generator",
     # "crates/input-builder",
     "crates/guest-prover-sp1",
-    #"crates/guest-prover-r0",
+    "crates/guest-prover-r0",
     # "crates/submiter",
 
     # "crates/prover",
