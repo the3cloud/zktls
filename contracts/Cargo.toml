@@ -1,7 +1,0 @@
-[package]
-name = "t3zktls-contracts-ethereum"
-version.workspace = true
-edition.workspace = true
-
-[dependencies]
-alloy = { workspace = true, features = ["sol-types", "contract"] }

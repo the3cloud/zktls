@@ -4,13 +4,13 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-t3zktls-program-core = { workspace = true }
+zktls-program-core = { workspace = true }
 
-log = { workspace = true }
+# log = { workspace = true }
 
 anyhow = { workspace = true }
 
-alloy = { workspace = true }
+alloy-primitives = { workspace = true }
 
 [dev-dependencies]
 env_logger = { workspace = true }
