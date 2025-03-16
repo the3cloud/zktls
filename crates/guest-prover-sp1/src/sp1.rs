@@ -1,8 +1,8 @@
 use std::{future::Future, panic};
 
-use alloy_primitives::{hex, B256};
+use alloy_primitives::hex;
 use anyhow::Result;
-use sp1_sdk::{HashableKey, ProverClient, SP1Stdin};
+use sp1_sdk::{ProverClient, SP1Stdin};
 use t3zktls_core::ZkProver;
 use zktls_program_core::{GuestInput, Response};
 
@@ -21,13 +21,12 @@ impl ZkProver for SP1GuestProver {
     fn prove(
         &mut self,
         input: GuestInput,
-        pvkey: B256,
         guest_program: &[u8],
     ) -> impl Future<Output = Result<Response>> + Send {
         let is_mock = self.mock;
         let guest_program = guest_program.to_vec();
 
-        _panic_catched_prove(is_mock, input, guest_program, pvkey)
+        _panic_catched_prove(is_mock, input, guest_program)
     }
 }
 
@@ -35,7 +34,6 @@ async fn _panic_catched_prove(
     is_mock: bool,
     input: GuestInput,
     guest_program: Vec<u8>,
-    pvkey: B256,
 ) -> Result<Response> {
     panic::catch_unwind(move || {
         let client = if is_mock {
@@ -44,17 +42,12 @@ async fn _panic_catched_prove(
             ProverClient::new()
         };
 
-        prove(client, input, &guest_program, pvkey)
+        prove(client, input, &guest_program)
     })
     .map_err(|e| anyhow::anyhow!("{:?}", e))?
 }
 
-pub fn prove(
-    client: ProverClient,
-    input: GuestInput,
-    guest_program: &[u8],
-    pvkey: B256,
-) -> Result<Response> {
+pub fn prove(client: ProverClient, input: GuestInput, guest_program: &[u8]) -> Result<Response> {
     let mut stdin = SP1Stdin::new();
 
     let mut input_bytes = Vec::new();
@@ -63,10 +56,6 @@ pub fn prove(
     stdin.write_vec(input_bytes);
 
     let (pk, vk) = client.setup(guest_program);
-
-    if vk.bytes32() != format!("{}", pvkey) {
-        return Err(anyhow::anyhow!("PVKey mismatch"));
-    }
 
     let prover_output = client.prove(&pk, stdin).groth16().run()?;
 

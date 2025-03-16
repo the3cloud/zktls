@@ -1,6 +1,6 @@
 use std::{future::Future, panic};
 
-use alloy_primitives::{hex, B256};
+use alloy_primitives::hex;
 use anyhow::Result;
 use risc0_zkvm::{default_prover, ExecutorEnv, ProverOpts};
 use t3zktls_core::ZkProver;
@@ -13,7 +13,6 @@ impl ZkProver for Risc0GuestProver {
     fn prove(
         &mut self,
         input: GuestInput,
-        _pvkey: B256,
         guest_program: &[u8],
     ) -> impl Future<Output = Result<Response>> + Send {
         panic_catched_prover(input, guest_program)
@@ -42,7 +41,7 @@ fn prover(input: GuestInput, guest_program: &[u8]) -> Result<Response> {
     if proof.len() <= 4 {
         proof = Vec::new();
     }
-    response.proof = proof.into();
+    response.proof = proof;
 
     Ok(response)
 }
