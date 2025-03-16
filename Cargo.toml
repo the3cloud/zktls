@@ -5,8 +5,8 @@ members = [ "bins/zktls",
 
     # "crates/cli-generator",
     # "crates/input-builder",
-    # "crates/guest-prover-sp1",
-    # "crates/guest-prover-r0",
+    "crates/guest-prover-sp1",
+    "crates/guest-prover-r0",
     # "crates/submiter",
 
     # "crates/prover",
@@ -32,14 +32,14 @@ serde = { version = "1.0.214", default-features = false, features = [
 ] }
 # serde_json = "1.0.132"
 # # bytes = "1.7.2"
-# ciborium = "0.2.0"
+ciborium = "0.2.0"
 
 # async-trait = "0.1"
 
 zktls-program-core = { git = "https://github.com/the3cloud/zkvm-programs.git", branch = "main" }
-# t3zktls-core = { path = "core", version = "0.1.0" }
+t3zktls-core = { path = "core", version = "0.1.0" }
 
-# tokio = "1.41.0"
+tokio = "1.41.0"
 
 # regex = "1.11.1"
 # lru = "0.12.5"

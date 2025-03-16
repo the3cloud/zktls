@@ -7,7 +7,7 @@ edition.workspace = true
 sp1-sdk = { version = "3.4.0" }
 
 t3zktls-core = { workspace = true }
-t3zktls-program-core = { workspace = true }
+zktls-program-core = { workspace = true }
 
 ciborium.workspace = true
 
@@ -15,15 +15,11 @@ anyhow = { workspace = true }
 
 tokio = { workspace = true }
 
-alloy = { workspace = true, features = ["sol-types"] }
-
+alloy-primitives = { workspace = true }
+ 
 log = { workspace = true }
 
-hex = { workspace = true }
-
-[dev-dependencies]
-tokio = { workspace = true }
 
 [features]
-default = []
+default = [] 
 cuda = ["sp1-sdk/cuda"]
