@@ -44,7 +44,7 @@ fn _request_tls_call(request: &Request) -> Result<GuestInputResponse> {
 
     let request_data = request.request_info.request.as_ref();
 
-    tls.write_all(&request_data)?;
+    tls.write_all(request_data)?;
 
     let mut response = Vec::new();
     tls.read_to_end(&mut response)?;

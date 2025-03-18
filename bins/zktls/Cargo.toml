@@ -5,4 +5,22 @@ edition.workspace = true
 
 [dependencies]
 clap = { version = "4.5.1", features = ["derive"] }
+
 anyhow = "1.0"
+log = { workspace = true }
+
+tokio = { workspace = true }
+
+zktls-program-core = { workspace = true }
+
+serde_json = { workspace = true }
+
+t3zktls-core = { workspace = true }
+
+t3zktls-input-builder = { workspace = true }
+
+t3zktls-guest-prover-r0 = { workspace = true }
+t3zktls-guest-prover-sp1 = { workspace = true }
+
+reqwest = "0.12.1"
+futures-util = "0.3.31"

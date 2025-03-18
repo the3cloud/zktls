@@ -42,9 +42,10 @@ zktls-recordable-tls-provider = { git = "https://github.com/the3cloud/zkvm-progr
 
 t3zktls-core = { path = "core", version = "0.1.0" }
 t3zktls-input-builder = { path = "crates/input-builder", version = "0.1.0" }
+t3zktls-guest-prover-r0 = { path = "crates/guest-prover-r0", version = "0.1.0" }
+t3zktls-guest-prover-sp1 = { path = "crates/guest-prover-sp1", version = "0.1.0" }
 
 tokio = "1.41.0"
 
 regex = "1.11.1"
 lru = "0.12.5"
-

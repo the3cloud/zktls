@@ -99,7 +99,7 @@ impl TLSInputBuilder {
     ) -> Result<Vec<FilteredResponse>> {
         let filtered_responses = self
             .cache
-            .find(&regex, &String::from_utf8(response.to_vec())?)?;
+            .find(regex, &String::from_utf8(response.to_vec())?)?;
 
         Ok(filtered_responses)
     }
