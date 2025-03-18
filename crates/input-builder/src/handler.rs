@@ -1,9 +1,8 @@
 use std::num::NonZeroUsize;
 
-use alloy::primitives::Bytes;
 use anyhow::Result;
 use t3zktls_core::InputBuilder;
-use t3zktls_program_core::{GuestInput, Request, ResponseTemplate};
+use zktls_program_core::{GuestInput, Request, ResponseTemplate};
 
 use crate::{regex_cache::RegexCache, request::request_tls_call, Config, FilteredResponse};
 
@@ -51,7 +50,7 @@ impl TLSInputBuilder {
                         .push(fr.length);
                     guest_input_response
                         .filtered_responses
-                        .push(Bytes::from(fr.bytes));
+                        .push(fr.bytes.into());
                 }
                 ResponseTemplate::Regex { pattern } => {
                     let fr = self.handle_response_template_regex(
@@ -67,7 +66,7 @@ impl TLSInputBuilder {
                         .extend(fr.iter().map(|fr| fr.length));
                     guest_input_response
                         .filtered_responses
-                        .extend(fr.into_iter().map(|fr| Bytes::from(fr.bytes)));
+                        .extend(fr.into_iter().map(|fr| fr.bytes.into()));
                 }
             }
         }
@@ -126,7 +125,7 @@ impl TLSInputBuilder {
 mod tests {
     use std::fs;
 
-    use t3zktls_program_core::Request;
+    use zktls_program_core::Request;
 
     use crate::{Config, TLSInputBuilder};
 
@@ -139,7 +138,7 @@ mod tests {
         let request_body =
             "GET /get HTTP/1.1\r\nHost: httpbin.org\r\nAccept: */*\r\nConnection: Close\r\n\r\n";
 
-        req.request = request_body.as_bytes().to_vec().into();
+        req.request_info.request = request_body.as_bytes().to_vec().into();
 
         let config = Config {
             regex_cache_size: 100,

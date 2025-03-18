@@ -41,7 +41,7 @@ fn prover(input: GuestInput, guest_program: &[u8]) -> Result<Response> {
     if proof.len() <= 4 {
         proof = Vec::new();
     }
-    response.proof = proof;
+    response.proof = proof.into();
 
     Ok(response)
 }

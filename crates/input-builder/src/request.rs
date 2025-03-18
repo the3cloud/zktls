@@ -7,8 +7,8 @@ use std::{
 
 use anyhow::Result;
 use rustls::{ClientConfig, ClientConnection, RootCertStore};
-use t3zktls_program_core::{GuestInputResponse, Request, ResponseTemplate};
-use t3zktls_recordable_tls::{crypto_provider, time_provider, RecordableStream};
+use zktls_program_core::{GuestInputResponse, Request, ResponseTemplate};
+use zktls_recordable_tls_provider::{crypto_provider, time_provider, RecordableStream};
 
 pub fn request_tls_call(request: &Request) -> Result<GuestInputResponse> {
     let res = panic::catch_unwind(move || _request_tls_call(request))
@@ -18,7 +18,7 @@ pub fn request_tls_call(request: &Request) -> Result<GuestInputResponse> {
 }
 
 fn _request_tls_call(request: &Request) -> Result<GuestInputResponse> {
-    let stream = TcpStream::connect(&request.remote_addr)?;
+    let stream = TcpStream::connect(&request.request_info.remote_addr)?;
     let mut recordable_stream = RecordableStream::new(stream);
 
     let root_store = RootCertStore {
@@ -36,13 +36,13 @@ fn _request_tls_call(request: &Request) -> Result<GuestInputResponse> {
             .with_root_certificates(root_store)
             .with_no_client_auth();
 
-    let server_name = String::from(&request.server_name).try_into()?;
+    let server_name = String::from(&request.request_info.server_name).try_into()?;
 
     let mut tls_stream = ClientConnection::new(Arc::new(config), server_name)?;
 
     let mut tls = rustls::Stream::new(&mut tls_stream, &mut recordable_stream);
 
-    let request_data = request.request.as_ref();
+    let request_data = request.request_info.request.as_ref();
 
     tls.write_all(&request_data)?;
 
@@ -52,7 +52,7 @@ fn _request_tls_call(request: &Request) -> Result<GuestInputResponse> {
 
     recordable_stream.flush()?;
 
-    let random = t3zktls_recordable_tls::random();
+    let random = zktls_recordable_tls_provider::random();
     let time = time_provider
         .time()
         .ok_or(anyhow::anyhow!("Time not set"))?;
@@ -80,7 +80,10 @@ fn _request_tls_call(request: &Request) -> Result<GuestInputResponse> {
                 let begin = begin as usize;
                 let length = length as usize;
 
-                let res = response.get(begin..begin + length).ok_or(anyhow::anyhow!("Offset out of range"))?.to_vec();
+                let res = response
+                    .get(begin..begin + length)
+                    .ok_or(anyhow::anyhow!("Offset out of range"))?
+                    .to_vec();
                 filtered_responses.push(res.into());
             }
             ResponseTemplate::Regex { pattern: _ } => {
