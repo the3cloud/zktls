@@ -4,13 +4,9 @@ members = [
     "bins/zktls",
     "core",
 
-    # "crates/cli-generator",
     "crates/input-builder",
     "crates/guest-prover-sp1",
     "crates/guest-prover-r0",
-    # "crates/submiter",
-
-    # "crates/prover",
 ]
 
 
