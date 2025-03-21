@@ -38,6 +38,22 @@ impl SP1GuestProver {
         self.mode = ProverType::Mock;
         self
     }
+
+    pub fn local(mut self) -> Self {
+        self.mode = ProverType::Local;
+        self
+    }
+
+    #[cfg(feature = "cuda")]
+    pub fn cuda(mut self) -> Self {
+        self.mode = ProverType::Cuda;
+        self
+    }
+
+    pub fn network(mut self) -> Self {
+        self.mode = ProverType::Network;
+        self
+    }
 }
 impl ZkProver for SP1GuestProver {
     fn prove(

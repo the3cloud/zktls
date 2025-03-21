@@ -11,6 +11,8 @@ pub enum TargetChain {
 
 #[derive(Clone, Debug, ValueEnum)]
 pub enum Prover {
+    #[cfg(feature = "sp1-backend")]
     Sp1,
+    #[cfg(feature = "r0-backend")]
     R0,
 }

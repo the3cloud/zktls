@@ -19,12 +19,15 @@ zktls-core = { workspace = true }
 
 zktls-input-builder = { workspace = true }
 
-zktls-guest-prover-r0 = { workspace = true }
-zktls-guest-prover-sp1 = { workspace = true }
+zktls-guest-prover-r0 = { workspace = true, optional = true }
+zktls-guest-prover-sp1 = { workspace = true, optional = true }
 
 reqwest = "0.12.1"
 futures-util = "0.3.31"
 
 [features]
-default = []
-cuda = ["zktls-guest-prover-sp1/cuda", "zktls-guest-prover-r0/cuda"]
+default = ["sp1-backend"]
+sp1-backend = ["zktls-guest-prover-sp1"]
+r0-backend = ["zktls-guest-prover-r0"]
+cuda = []
+# cuda = ["zktls-guest-prover-sp1/cuda", "zktls-guest-prover-r0/cuda"]

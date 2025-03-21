@@ -1,7 +1,6 @@
 use std::{fs, path::PathBuf};
 
-use crate::utils::get_r0_program;
-use crate::utils::get_sp1_program;
+use crate::utils;
 
 use super::types::{Prover, TargetChain};
 
@@ -9,15 +8,13 @@ use anyhow::Result;
 use clap::Args;
 use zktls_core::InputBuilder;
 use zktls_core::ZkProver;
-use zktls_guest_prover_r0::Risc0GuestProver;
-use zktls_guest_prover_sp1::SP1GuestProver;
 use zktls_input_builder::{Config, TLSInputBuilder};
 use zktls_program_core::Request;
 
 #[derive(Args)]
 pub struct ProveArgs {
     /// Path to the input request file
-    #[arg(long)]
+    #[arg(short, long)]
     pub input_request_file: PathBuf,
 
     /// Target chain for the proof
@@ -25,8 +22,20 @@ pub struct ProveArgs {
     pub target_chain: TargetChain,
 
     /// Use mock mode
-    #[arg(long)]
+    #[arg(long, group = "proverMode")]
     pub mock: bool,
+
+    /// Use local mode
+    #[arg(long, group = "proverMode")]
+    pub local: bool,
+
+    /// Use cuda mode
+    #[cfg(feature = "cuda")]
+    #[arg(long, group = "proverMode")]
+    pub cuda: bool,
+
+    #[arg(long, group = "proverMode")]
+    pub network: bool,
 
     /// Prover backend to use
     #[arg(long, value_enum)]
@@ -53,17 +62,29 @@ impl ProveArgs {
         match builder.build_input(request).await {
             Ok(input) => {
                 let output = match self.prover {
+                    #[cfg(feature = "r0-backend")]
                     Prover::R0 => {
-                        let mut guest = Risc0GuestProver::default();
-                        let program = get_r0_program().await?;
+                        let mut guest = zktls_guest_prover_r0::Risc0GuestProver::default();
+                        let program = utils::get_program("r0").await?;
                         guest.prove(input, &program).await?
                     }
+                    #[cfg(feature = "sp1-backend")]
                     Prover::Sp1 => {
-                        let mut guest = SP1GuestProver::default();
+                        let mut guest = zktls_guest_prover_sp1::SP1GuestProver::default();
                         if self.mock {
                             guest = guest.mock();
                         }
-                        let program = get_sp1_program().await?;
+                        if self.local {
+                            guest = guest.local();
+                        }
+                        #[cfg(feature = "cuda")]
+                        if self.cuda {
+                            guest = guest.cuda();
+                        }
+                        if self.network {
+                            guest = guest.network();
+                        }
+                        let program = utils::get_program("sp1").await?;
                         guest.prove(input, &program).await?
                     }
                 };

@@ -29,34 +29,17 @@ async fn build_guest_path() -> Result<PathBuf> {
     Ok(dir)
 }
 
-pub async fn get_sp1_program() -> Result<Vec<u8>> {
+pub async fn get_program(ty: &str) -> Result<Vec<u8>> {
     let file = build_guest_path().await?.join("zktls-sp1");
 
-    let url = "https://github.com/the3cloud/zkvm-programs/releases/download/v0.1.0-alpha/zktls-sp1";
+    let url = format!(
+        "https://github.com/the3cloud/zkvm-programs/releases/download/v0.1.0-beta/zktls-{}",
+        ty
+    );
 
     if !file.exists() {
         log::info!("downloading program from {}", url);
-        download_program(url, &file).await?;
-        log::info!("downloaded program success {}", file.display());
-    } else {
-        log::info!(
-            "program already exists {}, if you want to download again, please remove it",
-            file.display()
-        );
-    }
-    let program = fs::read(&file).await?;
-
-    Ok(program)
-}
-
-pub async fn get_r0_program() -> Result<Vec<u8>> {
-    let file = build_guest_path().await?.join("zktls-r0");
-
-    let url = "https://github.com/the3cloud/zkvm-programs/releases/download/v0.1.0-alpha/zktls-r0";
-
-    if !file.exists() {
-        log::info!("downloading program from {}", url);
-        download_program(url, &file).await?;
+        download_program(&url, &file).await?;
         log::info!("downloaded program success {}", file.display());
     } else {
         log::info!(
