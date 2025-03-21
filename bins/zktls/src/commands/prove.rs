@@ -18,7 +18,7 @@ pub struct ProveArgs {
     pub input_request_file: PathBuf,
 
     /// Target chain for the proof
-    #[arg(long, value_enum)]
+    #[arg(short, long, value_enum)]
     pub target_chain: TargetChain,
 
     /// Use mock mode
@@ -38,7 +38,7 @@ pub struct ProveArgs {
     pub network: bool,
 
     /// Prover backend to use
-    #[arg(long, value_enum)]
+    #[arg(short, long, value_enum)]
     pub prover: Prover,
 }
 

@@ -25,6 +25,8 @@ zktls-guest-prover-sp1 = { workspace = true, optional = true }
 reqwest = "0.12.1"
 futures-util = "0.3.31"
 
+env_logger = { workspace = true }
+
 [features]
 default = ["sp1-backend"]
 sp1-backend = ["zktls-guest-prover-sp1"]
