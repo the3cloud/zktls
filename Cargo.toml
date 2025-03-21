@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
-members = [ "bins/zktls",
+members = [
+    "bins/zktls",
     "core",
 
     # "crates/cli-generator",
@@ -40,10 +41,10 @@ webpki-roots = "0.26.6"
 zktls-program-core = { git = "https://github.com/the3cloud/zkvm-programs.git", branch = "main" }
 zktls-recordable-tls-provider = { git = "https://github.com/the3cloud/zkvm-programs.git", branch = "main" }
 
-t3zktls-core = { path = "core", version = "0.1.0" }
-t3zktls-input-builder = { path = "crates/input-builder", version = "0.1.0" }
-t3zktls-guest-prover-r0 = { path = "crates/guest-prover-r0", version = "0.1.0" }
-t3zktls-guest-prover-sp1 = { path = "crates/guest-prover-sp1", version = "0.1.0" }
+zktls-core = { path = "core", version = "0.1.0" }
+zktls-input-builder = { path = "crates/input-builder", version = "0.1.0" }
+zktls-guest-prover-r0 = { path = "crates/guest-prover-r0", version = "0.1.0" }
+zktls-guest-prover-sp1 = { path = "crates/guest-prover-sp1", version = "0.1.0" }
 
 tokio = "1.41.0"
 

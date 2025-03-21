@@ -1,7 +1,7 @@
 use std::num::NonZeroUsize;
 
 use anyhow::Result;
-use t3zktls_core::InputBuilder;
+use zktls_core::InputBuilder;
 use zktls_program_core::{GuestInput, Request, ResponseTemplate};
 
 use crate::{regex_cache::RegexCache, request::request_tls_call, Config, FilteredResponse};

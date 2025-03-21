@@ -1,6 +1,6 @@
 use anyhow::Result;
-use t3zktls_core::RequestGenerator;
-use t3zktls_program_core::Request;
+use zktls_core::RequestGenerator;
+use zktls_program_core::Request;
 use tokio::io::{self, AsyncBufReadExt};
 
 #[derive(Debug, Default)]

@@ -3,7 +3,7 @@ use std::{future::Future, panic};
 use alloy_primitives::hex;
 use anyhow::Result;
 use risc0_zkvm::{default_prover, ExecutorEnv, ProverOpts};
-use t3zktls_core::ZkProver;
+use zktls_core::ZkProver;
 use zktls_program_core::{GuestInput, Response};
 
 #[derive(Default)]

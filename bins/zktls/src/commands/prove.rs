@@ -7,11 +7,11 @@ use super::types::{Prover, TargetChain};
 
 use anyhow::Result;
 use clap::Args;
-use t3zktls_core::InputBuilder;
-use t3zktls_core::ZkProver;
-use t3zktls_guest_prover_r0::Risc0GuestProver;
-use t3zktls_guest_prover_sp1::SP1GuestProver;
-use t3zktls_input_builder::{Config, TLSInputBuilder};
+use zktls_core::InputBuilder;
+use zktls_core::ZkProver;
+use zktls_guest_prover_r0::Risc0GuestProver;
+use zktls_guest_prover_sp1::SP1GuestProver;
+use zktls_input_builder::{Config, TLSInputBuilder};
 use zktls_program_core::Request;
 
 #[derive(Args)]
@@ -37,10 +37,10 @@ impl ProveArgs {
     pub async fn execute(&self) -> Result<()> {
         // Validate that input file exists
         if !self.input_request_file.exists() {
-            anyhow::bail!(
+            return Err(anyhow::anyhow!(
                 "Input request file does not exist: {}",
                 self.input_request_file.display()
-            );
+            ));
         }
 
         let input_request_file = fs::read_to_string(&self.input_request_file)?;

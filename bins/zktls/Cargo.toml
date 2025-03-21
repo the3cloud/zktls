@@ -15,12 +15,16 @@ zktls-program-core = { workspace = true }
 
 serde_json = { workspace = true }
 
-t3zktls-core = { workspace = true }
+zktls-core = { workspace = true }
 
-t3zktls-input-builder = { workspace = true }
+zktls-input-builder = { workspace = true }
 
-t3zktls-guest-prover-r0 = { workspace = true }
-t3zktls-guest-prover-sp1 = { workspace = true }
+zktls-guest-prover-r0 = { workspace = true }
+zktls-guest-prover-sp1 = { workspace = true }
 
 reqwest = "0.12.1"
 futures-util = "0.3.31"
+
+[features]
+default = []
+cuda = ["zktls-guest-prover-sp1/cuda", "zktls-guest-prover-r0/cuda"]

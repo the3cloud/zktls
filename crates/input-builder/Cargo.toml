@@ -1,5 +1,5 @@
 [package]
-name = "t3zktls-input-builder"
+name = "zktls-input-builder"
 version.workspace = true
 edition.workspace = true
 
@@ -10,7 +10,7 @@ webpki-roots = { workspace = true }
 rustls = { workspace = true }
 rustls-rustcrypto = { workspace = true }
 
-t3zktls-core = { workspace = true }
+zktls-core = { workspace = true }
 zktls-program-core = { workspace = true }
 zktls-recordable-tls-provider = { workspace = true }
 

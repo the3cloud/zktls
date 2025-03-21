@@ -22,7 +22,7 @@ pub async fn download_program(url: &str, path: &Path) -> Result<()> {
 
 async fn build_guest_path() -> Result<PathBuf> {
     let dir = env::var("HOME")?;
-    let dir = Path::new(&dir).join(".local").join("t3zktlsd");
+    let dir = Path::new(&dir).join(".local").join("zktlsd");
 
     fs::create_dir_all(&dir).await?;
 
