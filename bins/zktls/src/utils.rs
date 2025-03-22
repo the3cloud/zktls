@@ -30,7 +30,7 @@ async fn build_guest_path() -> Result<PathBuf> {
 }
 
 pub async fn get_program(ty: &str) -> Result<Vec<u8>> {
-    let file = build_guest_path().await?.join("zktls-sp1");
+    let file = build_guest_path().await?.join(format!("zktls-{}", ty));
 
     let url = format!(
         "https://github.com/the3cloud/zkvm-programs/releases/download/v0.1.0-beta/zktls-{}",

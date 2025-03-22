@@ -9,7 +9,6 @@ members = [
     "crates/guest-prover-r0",
 ]
 
-
 exclude = ["program/sp1/tls-sp1", "program/risc0/tls-r0"]
 
 [workspace.package]

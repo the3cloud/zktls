@@ -75,7 +75,14 @@ async fn panic_catched_prover(input: GuestInput, guest_program: &[u8]) -> Result
 fn prover(input: GuestInput, guest_program: &[u8]) -> Result<Response> {
     let prover = default_prover();
 
-    let env = ExecutorEnv::builder().write(&input)?.build()?;
+    let mut input_bytes = Vec::new();
+    ciborium::into_writer(&input, &mut input_bytes)?;
+
+    println!("input_bytes_len: {}", input_bytes.len());
+
+    let env = ExecutorEnv::builder()
+        .write_slice(input_bytes.as_slice())
+        .build()?;
 
     let prove_result = prover.prove_with_opts(env, guest_program, &ProverOpts::groth16())?;
 
