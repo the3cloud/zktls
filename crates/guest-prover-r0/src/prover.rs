@@ -82,7 +82,12 @@ fn prover(input: GuestInput, guest_program: &[u8]) -> Result<Response> {
 
     let env = ExecutorEnv::builder().write_slice(&input_bytes).build()?;
 
+    let start = std::time::Instant::now();
+
     let prove_result = prover.prove_with_opts(env, guest_program, &ProverOpts::groth16())?;
+
+    let elapsed = start.elapsed();
+    println!("Proving took: {:?}", elapsed);
 
     let journal = prove_result.receipt.journal;
     let mut response: Response = ciborium::from_reader(journal.bytes.as_slice())?;
