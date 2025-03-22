@@ -78,8 +78,6 @@ fn prover(input: GuestInput, guest_program: &[u8]) -> Result<Response> {
     let mut input_bytes = Vec::new();
     ciborium::into_writer(&input, &mut input_bytes)?;
 
-    println!("input_len: {:?}", input_bytes.len());
-
     let env = ExecutorEnv::builder().write_slice(&input_bytes).build()?;
 
     let start = std::time::Instant::now();
