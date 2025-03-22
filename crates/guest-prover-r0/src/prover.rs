@@ -7,7 +7,54 @@ use zktls_core::ZkProver;
 use zktls_program_core::{GuestInput, Response};
 
 #[derive(Default)]
-pub struct Risc0GuestProver {}
+pub enum ProverType {
+    #[default]
+    Mock,
+    Local,
+    #[cfg(feature = "cuda")]
+    Cuda,
+    Network,
+}
+
+impl ProverType {
+    pub fn set_env(&self) {
+        match self {
+            ProverType::Mock => std::env::set_var("RISC0_DEV_MODE", "true"),
+            ProverType::Local => std::env::set_var("RISC0_PROVER", "local"),
+            #[cfg(feature = "cuda")]
+            ProverType::Cuda => std::env::set_var("RISC0_PROVER", "local"),
+            ProverType::Network => std::env::set_var("RISC0_PROVER", "bonsai"),
+        }
+    }
+}
+
+#[derive(Default)]
+pub struct Risc0GuestProver {
+    mode: ProverType,
+}
+
+impl Risc0GuestProver {
+    pub fn mock(mut self) -> Self {
+        self.mode = ProverType::Mock;
+        self
+    }
+
+    pub fn local(mut self) -> Self {
+        self.mode = ProverType::Local;
+        self
+    }
+
+    #[cfg(feature = "cuda")]
+    pub fn cuda(mut self) -> Self {
+        self.mode = ProverType::Cuda;
+        self
+    }
+
+    pub fn network(mut self) -> Self {
+        self.mode = ProverType::Network;
+        self
+    }
+}
 
 impl ZkProver for Risc0GuestProver {
     fn prove(
@@ -15,6 +62,7 @@ impl ZkProver for Risc0GuestProver {
         input: GuestInput,
         guest_program: &[u8],
     ) -> impl Future<Output = Result<Response>> + Send {
+        self.mode.set_env();
         panic_catched_prover(input, guest_program)
     }
 }
