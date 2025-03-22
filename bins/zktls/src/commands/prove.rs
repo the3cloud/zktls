@@ -30,7 +30,7 @@ pub struct ProveArgs {
     pub local: bool,
 
     /// Use cuda mode
-    #[cfg(feature = "cuda")]
+    #[cfg(feature = "_cuda")]
     #[arg(long, group = "proverMode")]
     pub cuda: bool,
 
@@ -77,7 +77,7 @@ impl ProveArgs {
                         if self.local {
                             guest = guest.local();
                         }
-                        #[cfg(feature = "cuda")]
+                        #[cfg(feature = "_cuda")]
                         if self.cuda {
                             guest = guest.cuda();
                         }
