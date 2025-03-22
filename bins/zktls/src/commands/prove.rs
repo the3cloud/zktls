@@ -74,7 +74,7 @@ impl ProveArgs {
                             guest = guest.local();
                         }
 
-                        #[cfg(feature = "_cuda")]
+                        #[cfg(feature = "r0-backend-cuda")]
                         if self.cuda {
                             guest = guest.cuda();
                         }
@@ -95,7 +95,7 @@ impl ProveArgs {
                         if self.local {
                             guest = guest.local();
                         }
-                        #[cfg(feature = "_cuda")]
+                        #[cfg(feature = "sp1-backend-cuda")]
                         if self.cuda {
                             guest = guest.cuda();
                         }
