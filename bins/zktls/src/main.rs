@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 
 mod commands;
+mod utils;
 use commands::{ExportVerifierArgs, ProveArgs};
 
 #[derive(Parser)]
@@ -19,11 +20,14 @@ enum Commands {
     ExportVerifier(ExportVerifierArgs),
 }
 
-fn main() -> anyhow::Result<()> {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    env_logger::init();
+
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::Prove(args) => args.execute(),
+        Commands::Prove(args) => args.execute().await,
         Commands::ExportVerifier(args) => args.execute(),
     }
 }

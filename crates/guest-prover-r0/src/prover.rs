@@ -3,7 +3,7 @@ use std::{future::Future, panic};
 use alloy_primitives::hex;
 use anyhow::Result;
 use risc0_zkvm::{default_prover, ExecutorEnv, ProverOpts};
-use t3zktls_core::ZkProver;
+use zktls_core::ZkProver;
 use zktls_program_core::{GuestInput, Response};
 
 #[derive(Default)]
@@ -41,7 +41,7 @@ fn prover(input: GuestInput, guest_program: &[u8]) -> Result<Response> {
     if proof.len() <= 4 {
         proof = Vec::new();
     }
-    response.proof = proof;
+    response.proof = proof.into();
 
     Ok(response)
 }

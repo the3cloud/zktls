@@ -1,7 +1,9 @@
 {
-    "request": "0x474554202f67657420485454502f312e310d0a486f73743a206874747062696e2e6f72670d0a557365722d4167656e743a206375726c2f382e352e300d0a4163636570743a202a2f2a0d0a436f6e6e656374696f6e3a20436c6f73650d0a0d0a",
-    "remote_addr": "httpbin.org:443",
-    "server_name": "httpbin.org",
+    "request_info": {
+        "request": "0x474554202f67657420485454502f312e310d0a486f73743a206874747062696e2e6f72670d0a557365722d4167656e743a206375726c2f382e352e300d0a4163636570743a202a2f2a0d0a436f6e6e656374696f6e3a20436c6f73650d0a0d0a",
+        "remote_addr": "httpbin.org:443",
+        "server_name": "httpbin.org"
+    },
     "response_template": [
         {
             "type": "offset",
