@@ -74,7 +74,7 @@ impl ProveArgs {
                             guest = guest.local();
                         }
 
-                        #[cfg(feature = "cuda")]
+                        #[cfg(feature = "_cuda")]
                         if self.cuda {
                             guest = guest.cuda();
                         }
