@@ -31,4 +31,5 @@ env_logger = { workspace = true }
 default = ["sp1-backend"]
 sp1-backend = ["zktls-guest-prover-sp1"]
 r0-backend = ["zktls-guest-prover-r0"]
-sp1-backend-cuda = ["zktls-guest-prover-sp1/cuda"]
+_cuda = []
+sp1-backend-cuda = ["_cuda", "zktls-guest-prover-sp1/cuda"]
