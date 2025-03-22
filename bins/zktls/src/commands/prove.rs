@@ -88,14 +88,9 @@ impl ProveArgs {
                         guest.prove(input, &program).await?
                     }
                 };
-                println!(
-                    "Submiting output for request id: {}, client is: {}, dapp hash is: {}, with max gas price: {} and max gas limit: {}",
-                    output.request_id,
-                    output.client,
-                    output.dapp,
-                    output.max_gas_price,
-                    output.max_gas_limit
-                );
+
+                println!("output: {:?}", output.response);
+                println!("proof: {:?}", output.proof);
             }
             Err(e) => {
                 println!("Error: {:?}", e);
