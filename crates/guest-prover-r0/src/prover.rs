@@ -78,16 +78,14 @@ fn prover(input: GuestInput, guest_program: &[u8]) -> Result<Response> {
     let mut input_bytes = Vec::new();
     ciborium::into_writer(&input, &mut input_bytes)?;
 
-    println!("input_bytes_len: {}", input_bytes.len());
+    println!("input_len: {:?}", input_bytes.len());
 
-    let env = ExecutorEnv::builder()
-        .write_slice(input_bytes.as_slice())
-        .build()?;
+    let env = ExecutorEnv::builder().write_slice(&input_bytes).build()?;
 
     let prove_result = prover.prove_with_opts(env, guest_program, &ProverOpts::groth16())?;
 
     let journal = prove_result.receipt.journal;
-    let mut response: Response = journal.decode()?;
+    let mut response: Response = ciborium::from_reader(journal.bytes.as_slice())?;
 
     let mut proof = prove_result.receipt.inner.groth16()?.seal.clone();
 
