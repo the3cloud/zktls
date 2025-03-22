@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-sp1-sdk = { version = "=4.1.0" }
+sp1-sdk = { version = "4.1.4" }
 
 zktls-core = { workspace = true }
 zktls-program-core = { workspace = true }

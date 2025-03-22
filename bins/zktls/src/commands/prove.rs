@@ -22,19 +22,20 @@ pub struct ProveArgs {
     pub target_chain: TargetChain,
 
     /// Use mock mode
-    #[arg(long, group = "proverMode")]
+    #[arg(long, group = "proverMode", default_value_t = false)]
     pub mock: bool,
 
     /// Use local mode
-    #[arg(long, group = "proverMode")]
+    #[arg(long, group = "proverMode", default_value_t = false)]
     pub local: bool,
 
     /// Use cuda mode
     #[cfg(feature = "_cuda")]
-    #[arg(long, group = "proverMode")]
+    #[arg(long, group = "proverMode", default_value_t = false)]
     pub cuda: bool,
 
-    #[arg(long, group = "proverMode")]
+    /// Use network mode
+    #[arg(long, group = "proverMode", default_value_t = false)]
     pub network: bool,
 
     /// Prover backend to use
