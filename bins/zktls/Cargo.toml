@@ -5,4 +5,30 @@ edition.workspace = true
 
 [dependencies]
 clap = { version = "4.5.1", features = ["derive"] }
+
 anyhow = "1.0"
+log = { workspace = true }
+
+tokio = { workspace = true }
+
+zktls-program-core = { workspace = true }
+
+serde_json = { workspace = true }
+
+zktls-core = { workspace = true }
+
+zktls-input-builder = { workspace = true }
+
+zktls-guest-prover-r0 = { workspace = true, optional = true }
+zktls-guest-prover-sp1 = { workspace = true, optional = true }
+
+reqwest = "0.12.1"
+futures-util = "0.3.31"
+
+env_logger = { workspace = true }
+
+[features]
+default = ["sp1-backend"]
+sp1-backend = ["zktls-guest-prover-sp1"]
+r0-backend = ["zktls-guest-prover-r0"]
+sp1-backend-cuda = ["zktls-guest-prover-sp1/cuda"]

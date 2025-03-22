@@ -1,12 +1,12 @@
 [package]
-name = "t3zktls-guest-prover-sp1"
+name = "zktls-guest-prover-sp1"
 version.workspace = true
 edition.workspace = true
 
 [dependencies]
-sp1-sdk = { version = "3.4.0" }
+sp1-sdk = { version = "4.1.3" }
 
-t3zktls-core = { workspace = true }
+zktls-core = { workspace = true }
 zktls-program-core = { workspace = true }
 
 ciborium.workspace = true
@@ -16,10 +16,10 @@ anyhow = { workspace = true }
 tokio = { workspace = true }
 
 alloy-primitives = { workspace = true }
- 
+
 log = { workspace = true }
 
 
 [features]
-default = [] 
+default = []
 cuda = ["sp1-sdk/cuda"]

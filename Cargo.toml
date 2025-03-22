@@ -1,15 +1,12 @@
 [workspace]
 resolver = "2"
-members = [ "bins/zktls",
+members = [
+    "bins/zktls",
     "core",
 
-    # "crates/cli-generator",
-    # "crates/input-builder",
+    "crates/input-builder",
     "crates/guest-prover-sp1",
     "crates/guest-prover-r0",
-    # "crates/submiter",
-
-    # "crates/prover",
 ]
 
 
@@ -24,31 +21,28 @@ anyhow = "1.0.91"
 log = "0.4.22"
 env_logger = "0.11.5"
 
-alloy-primitives = "0.7"
+alloy-primitives = "0.8.24"
 
 serde = { version = "1.0.214", default-features = false, features = [
     "alloc",
     "derive",
 ] }
-# serde_json = "1.0.132"
-# # bytes = "1.7.2"
+serde_json = "1.0.132"
 ciborium = "0.2.0"
 
-# async-trait = "0.1"
+rustls = { version = "0.23.13", default-features = false, features = ["std"] }
+rustls-rustcrypto = { git = "https://github.com/the3cloud/rustls-rustcrypto.git" }
+webpki-roots = "0.26.6"
 
 zktls-program-core = { git = "https://github.com/the3cloud/zkvm-programs.git", branch = "main" }
-t3zktls-core = { path = "core", version = "0.1.0" }
+zktls-recordable-tls-provider = { git = "https://github.com/the3cloud/zkvm-programs.git", branch = "main" }
+
+zktls-core = { path = "core", version = "0.1.0" }
+zktls-input-builder = { path = "crates/input-builder", version = "0.1.0" }
+zktls-guest-prover-r0 = { path = "crates/guest-prover-r0", version = "0.1.0" }
+zktls-guest-prover-sp1 = { path = "crates/guest-prover-sp1", version = "0.1.0" }
 
 tokio = "1.41.0"
 
-# regex = "1.11.1"
-# lru = "0.12.5"
-
-# clap = { version = "4.5.20", features = ["derive"] }
-
-# toml = "0.8.19"
-# toml_edit = "0.22.22"
-
-# hex = "0.4.3"
-# reqwest = "0.12.1"
-# futures-util = "0.3.31"
+regex = "1.11.1"
+lru = "0.13.0"
