@@ -65,6 +65,24 @@ impl ProveArgs {
                     #[cfg(feature = "r0-backend")]
                     Prover::R0 => {
                         let mut guest = zktls_guest_prover_r0::Risc0GuestProver::default();
+
+                        if self.mock {
+                            guest = guest.mock();
+                        }
+
+                        if self.local {
+                            guest = guest.local();
+                        }
+
+                        #[cfg(feature = "cuda")]
+                        if self.cuda {
+                            guest = guest.cuda();
+                        }
+
+                        if self.network {
+                            guest = guest.network();
+                        }
+
                         let program = utils::get_program("r0").await?;
                         guest.prove(input, &program).await?
                     }
