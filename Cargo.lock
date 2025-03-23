@@ -7761,6 +7761,7 @@ dependencies = [
  "anyhow",
  "ciborium",
  "log",
+ "sp1-prover",
  "sp1-sdk",
  "tokio",
  "zktls-core",

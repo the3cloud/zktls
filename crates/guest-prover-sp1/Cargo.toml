@@ -5,6 +5,7 @@ edition.workspace = true
 
 [dependencies]
 sp1-sdk = { version = "4.1.4" }
+sp1-prover = { version = "4.1.4" }
 
 zktls-core = { workspace = true }
 zktls-program-core = { workspace = true }

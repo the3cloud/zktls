@@ -41,6 +41,10 @@ pub struct ProveArgs {
     /// Prover backend to use
     #[arg(short, long, value_enum)]
     pub prover: Prover,
+
+    /// Moongate server to use
+    #[arg(short, long, env = "SP1_MOONGATE_SERVER")]
+    pub sp1_moongate_server: Option<String>,
 }
 
 impl ProveArgs {
@@ -89,7 +93,9 @@ impl ProveArgs {
                     }
                     #[cfg(feature = "sp1-backend")]
                     Prover::Sp1 => {
-                        let mut guest = zktls_guest_prover_sp1::SP1GuestProver::default();
+                        let mut guest = zktls_guest_prover_sp1::SP1GuestProver::new(
+                            self.sp1_moongate_server.clone(),
+                        );
                         if self.mock {
                             guest = guest.mock();
                         }

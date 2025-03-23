@@ -2,7 +2,8 @@ use std::{future::Future, panic};
 
 use alloy_primitives::hex;
 use anyhow::Result;
-use sp1_sdk::{EnvProver, ProverClient, SP1Stdin};
+use sp1_prover::components::CpuProverComponents;
+use sp1_sdk::{Prover, ProverClient, SP1Stdin};
 use zktls_core::ZkProver;
 use zktls_program_core::{GuestInput, Response};
 
@@ -28,12 +29,19 @@ impl ProverType {
     }
 }
 
-#[derive(Default)]
 pub struct SP1GuestProver {
     mode: ProverType,
+    moongate_server: Option<String>,
 }
 
 impl SP1GuestProver {
+    pub fn new(moongate_server: Option<String>) -> Self {
+        Self {
+            mode: ProverType::default(),
+            moongate_server,
+        }
+    }
+
     pub fn mock(mut self) -> Self {
         self.mode = ProverType::Mock;
         self
@@ -65,20 +73,36 @@ impl ZkProver for SP1GuestProver {
 
         let guest_program = guest_program.to_vec();
 
-        _panic_catched_prove(input, guest_program)
+        _panic_catched_prove(input, guest_program, &self.moongate_server)
     }
 }
 
-async fn _panic_catched_prove(input: GuestInput, guest_program: Vec<u8>) -> Result<Response> {
+async fn _panic_catched_prove(
+    input: GuestInput,
+    guest_program: Vec<u8>,
+    moongate_server: &Option<String>,
+) -> Result<Response> {
     panic::catch_unwind(move || {
-        let client = ProverClient::from_env();
+        if let Some(server) = moongate_server {
+            let prover = ProverClient::builder()
+                .cuda()
+                .with_moongate_endpoint(server)
+                .build();
 
-        prove(client, input, &guest_program)
+            prove(prover, input, &guest_program)
+        } else {
+            let client = ProverClient::from_env();
+
+            prove(client, input, &guest_program)
+        }
     })
     .map_err(|e| anyhow::anyhow!("{:?}", e))?
 }
 
-pub fn prove(client: EnvProver, input: GuestInput, guest_program: &[u8]) -> Result<Response> {
+pub fn prove<P>(client: P, input: GuestInput, guest_program: &[u8]) -> Result<Response>
+where
+    P: Prover<CpuProverComponents>,
+{
     let mut stdin = SP1Stdin::new();
 
     let mut input_bytes = Vec::new();
@@ -89,7 +113,7 @@ pub fn prove(client: EnvProver, input: GuestInput, guest_program: &[u8]) -> Resu
     let (pk, vk) = client.setup(guest_program);
 
     let start = std::time::Instant::now();
-    let prover_output = client.prove(&pk, &stdin).groth16().run()?;
+    let prover_output = client.prove(&pk, &stdin, sp1_sdk::SP1ProofMode::Groth16)?;
     let elapsed = start.elapsed();
     log::info!("Proving time: {:?}", elapsed);
 
