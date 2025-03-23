@@ -29,7 +29,7 @@ git clone https://github.com/the3cloud/zktls.git
 2. Compile the project
 
 ```bash
-cargo b --release -F --no-default-features -F sp1-backend,r0-backend
+cargo b --release --no-default-features -F sp1-backend,r0-backend
 ```
 
 3. Run zktls in command listens
