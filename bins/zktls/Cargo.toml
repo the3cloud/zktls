@@ -29,8 +29,18 @@ env_logger = { workspace = true }
 
 [features]
 default = ["sp1-backend"]
-sp1-backend = ["zktls-guest-prover-sp1"]
-r0-backend = ["zktls-guest-prover-r0"]
 _cuda = []
+sp1-backend = ["zktls-guest-prover-sp1"]
 sp1-backend-cuda = ["_cuda", "sp1-backend", "zktls-guest-prover-sp1/cuda"]
+sp1-backend-native-gnark = [
+    "sp1-backend",
+    "zktls-guest-prover-sp1/native-gnark",
+]
+sp1-backend-native-gnark-cuda = [
+    "sp1-backend",
+    "zktls-guest-prover-sp1/native-gnark",
+    "zktls-guest-prover-sp1/cuda",
+]
+
 r0-backend-cuda = ["_cuda", "r0-backend", "zktls-guest-prover-r0/cuda"]
+r0-backend = ["zktls-guest-prover-r0"]
