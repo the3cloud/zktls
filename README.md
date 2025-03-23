@@ -29,19 +29,13 @@ git clone https://github.com/the3cloud/zktls.git
 2. Compile the project
 
 ```bash
-cargo b && cargo t && cargo c
+cargo b --release -F sp1-backend,r0-backend
 ```
 
 3. Run zktls in command listens
 
 ```bash
-cargo run --bin zktls -- prove --input-request-file <path-to-request> --target-chain <target-chain> --mock
-```
-
-4. Export verifier contract
-
-```bash
-cargo run --bin zktls -- export-verifier --target-chain <target-chain>
+RUST_LOG=info ./target/release/zktls prove -i ./testdata/input.json --mock -t evm -p r0
 ```
 
 - target-chain: `evm`, `solana`, `sui`, `aptos`, `ton`
