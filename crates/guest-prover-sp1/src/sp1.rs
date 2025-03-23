@@ -88,7 +88,10 @@ pub fn prove(client: EnvProver, input: GuestInput, guest_program: &[u8]) -> Resu
 
     let (pk, vk) = client.setup(guest_program);
 
+    let start = std::time::Instant::now();
     let prover_output = client.prove(&pk, &stdin).groth16().run()?;
+    let elapsed = start.elapsed();
+    log::info!("Proving time: {:?}", elapsed);
 
     client.verify(&prover_output, &vk)?;
 
