@@ -36,11 +36,6 @@ sp1-backend-native-gnark = [
     "sp1-backend",
     "zktls-guest-prover-sp1/native-gnark",
 ]
-sp1-backend-native-gnark-cuda = [
-    "sp1-backend",
-    "zktls-guest-prover-sp1/native-gnark",
-    "zktls-guest-prover-sp1/cuda",
-]
 
 r0-backend-cuda = ["_cuda", "r0-backend", "zktls-guest-prover-r0/cuda"]
 r0-backend = ["zktls-guest-prover-r0"]
