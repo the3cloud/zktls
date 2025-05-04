@@ -33,8 +33,8 @@ rustls = { version = "0.23.13", default-features = false, features = ["std"] }
 rustls-rustcrypto = { git = "https://github.com/the3cloud/rustls-rustcrypto.git" }
 webpki-roots = "0.26.6"
 
-zktls-program-core = { git = "https://github.com/the3cloud/zkvm-programs.git", branch = "main" }
-zktls-recordable-tls-provider = { git = "https://github.com/the3cloud/zkvm-programs.git", branch = "main" }
+zktls-program-core = { git = "https://github.com/the3cloud/zkvm-programs.git", tag = "v0.1.0" }
+zktls-recordable-tls-provider = { git = "https://github.com/the3cloud/zkvm-programs.git", tag = "v0.1.0" }
 
 zktls-core = { path = "core", version = "0.1.0" }
 zktls-input-builder = { path = "crates/input-builder", version = "0.1.0" }
