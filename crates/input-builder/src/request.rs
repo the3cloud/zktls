@@ -86,7 +86,10 @@ fn _request_tls_call(request: &Request) -> Result<GuestInputResponse> {
                     .to_vec();
                 filtered_responses.push(res.into());
             }
-            ResponseTemplate::Regex { pattern: _ } => {
+            ResponseTemplate::Prefix {
+                prefix: _,
+                length: _,
+            } => {
                 // filtered_responses.push(pattern.clone());
             }
         }

@@ -1,23 +1,15 @@
-use std::num::NonZeroUsize;
-
 use anyhow::Result;
+use memchr::memmem::Finder;
 use zktls_core::InputBuilder;
 use zktls_program_core::{GuestInput, Request, ResponseTemplate};
 
-use crate::{regex_cache::RegexCache, request::request_tls_call, Config, FilteredResponse};
+use crate::{request::request_tls_call, FilteredResponse};
 
-pub struct TLSInputBuilder {
-    cache: RegexCache,
-}
+pub struct TLSInputBuilder {}
 
 impl TLSInputBuilder {
-    pub fn new(config: Config) -> Result<Self> {
-        Ok(Self {
-            cache: RegexCache::new(
-                NonZeroUsize::new(config.regex_cache_size)
-                    .ok_or(anyhow::anyhow!("regex_cache_size must be greater than 0"))?,
-            ),
-        })
+    pub fn new() -> Result<Self> {
+        Ok(Self {})
     }
 }
 
@@ -52,9 +44,10 @@ impl TLSInputBuilder {
                         .filtered_responses
                         .push(fr.bytes.into());
                 }
-                ResponseTemplate::Regex { pattern } => {
-                    let fr = self.handle_response_template_regex(
-                        pattern.as_str(),
+                ResponseTemplate::Prefix { prefix, length } => {
+                    let fr = self.handle_response_template_prefix(
+                        prefix,
+                        *length,
                         &guest_input_response.response,
                     )?;
 
@@ -92,33 +85,34 @@ impl TLSInputBuilder {
         })
     }
 
-    fn handle_response_template_regex(
+    fn handle_response_template_prefix(
         &mut self,
-        regex: &str,
+        prefix: &[u8],
+        length: u64,
         response: &[u8],
     ) -> Result<Vec<FilteredResponse>> {
-        let filtered_responses = self
-            .cache
-            .find(regex, &String::from_utf8(response.to_vec())?)?;
+        let finder = Finder::new(response);
+        let filtered_responses_iter = finder.find_iter(response);
 
-        Ok(filtered_responses)
+        let mut res = Vec::new();
+
+        for m in filtered_responses_iter {
+            let begin = m + prefix.len();
+            let end = begin + length as usize;
+
+            let content = response[begin as usize..end as usize].to_vec();
+
+            let filtered_response = FilteredResponse {
+                begin: begin as u64,
+                length,
+                bytes: content,
+            };
+
+            res.push(filtered_response);
+        }
+
+        Ok(res)
     }
-
-    // fn handle_response_template_xpath(
-    //     &mut self,
-    //     _xpath: String,
-    //     _response: String,
-    // ) -> Result<Vec<FilteredResponse>> {
-    //     Err(anyhow::anyhow!("not implemented"))
-    // }
-
-    // fn handle_response_template_jsonpath(
-    //     &mut self,
-    //     _json_path: String,
-    //     _response: String,
-    // ) -> Result<Vec<FilteredResponse>> {
-    //     Err(anyhow::anyhow!("not implemented"))
-    // }
 }
 
 #[cfg(test)]
@@ -127,10 +121,11 @@ mod tests {
 
     use zktls_program_core::Request;
 
-    use crate::{Config, TLSInputBuilder};
+    use crate::TLSInputBuilder;
 
     #[tokio::test]
     async fn test_handle_response1() {
+        // TODO: We need a new test data
         let bytes = include_str!("../testdata/req0.json");
 
         let mut req: Request = serde_json::from_str(bytes).unwrap();
@@ -140,11 +135,7 @@ mod tests {
 
         req.request_info.request = request_body.as_bytes().to_vec().into();
 
-        let config = Config {
-            regex_cache_size: 100,
-        };
-
-        let mut builder = TLSInputBuilder::new(config).unwrap();
+        let mut builder = TLSInputBuilder::new().unwrap();
 
         let input = builder.handle_request_tls_call(req).await.unwrap();
 

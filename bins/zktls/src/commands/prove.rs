@@ -8,7 +8,7 @@ use anyhow::Result;
 use clap::Args;
 use zktls_core::InputBuilder;
 use zktls_core::ZkProver;
-use zktls_input_builder::{Config, TLSInputBuilder};
+use zktls_input_builder::TLSInputBuilder;
 use zktls_program_core::Request;
 
 #[derive(Args)]
@@ -59,11 +59,8 @@ impl ProveArgs {
 
         let input_request_file = fs::read_to_string(&self.input_request_file)?;
         let request: Request = serde_json::from_str(&input_request_file)?;
-        let config = Config {
-            regex_cache_size: 100,
-        };
 
-        let mut builder = TLSInputBuilder::new(config).unwrap();
+        let mut builder = TLSInputBuilder::new().unwrap();
         match builder.build_input(request).await {
             Ok(input) => {
                 let output = match self.prover {

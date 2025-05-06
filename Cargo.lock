@@ -7774,6 +7774,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "lru 0.13.0",
+ "memchr",
  "regex",
  "rustls",
  "rustls-rustcrypto",
@@ -7788,8 +7789,8 @@ dependencies = [
 
 [[package]]
 name = "zktls-program-core"
-version = "0.1.0"
-source = "git+https://github.com/the3cloud/zkvm-programs.git?tag=v0.1.0#d83a182755f399db28ff4d9b4863da352d716e8e"
+version = "0.2.4"
+source = "git+https://github.com/the3cloud/zkvm-programs.git?tag=v0.2.4#c15425ed63d6f82f04446574aacf56df903c4e3a"
 dependencies = [
  "alloy-primitives",
  "log",
@@ -7800,8 +7801,8 @@ dependencies = [
 
 [[package]]
 name = "zktls-recordable-tls-provider"
-version = "0.1.0"
-source = "git+https://github.com/the3cloud/zkvm-programs.git?tag=v0.1.0#d83a182755f399db28ff4d9b4863da352d716e8e"
+version = "0.2.4"
+source = "git+https://github.com/the3cloud/zkvm-programs.git?tag=v0.2.4#c15425ed63d6f82f04446574aacf56df903c4e3a"
 dependencies = [
  "once_cell",
  "rand_core 0.6.4",
