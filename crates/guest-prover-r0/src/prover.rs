@@ -4,7 +4,7 @@ use alloy_primitives::hex;
 use anyhow::Result;
 use risc0_zkvm::{default_prover, ExecutorEnv, ProverOpts};
 use zktls_core::ZkProver;
-use zktls_program_core::{GuestInput, Response};
+use zktls_program_core::GuestInput;
 
 #[derive(Default)]
 pub enum ProverType {
@@ -61,18 +61,21 @@ impl ZkProver for Risc0GuestProver {
         &mut self,
         input: GuestInput,
         guest_program: &[u8],
-    ) -> impl Future<Output = Result<Response>> + Send {
+    ) -> impl Future<Output = Result<(Vec<u8>, Vec<u8>)>> + Send {
         self.mode.set_env();
         panic_catched_prover(input, guest_program)
     }
 }
 
-async fn panic_catched_prover(input: GuestInput, guest_program: &[u8]) -> Result<Response> {
+async fn panic_catched_prover(
+    input: GuestInput,
+    guest_program: &[u8],
+) -> Result<(Vec<u8>, Vec<u8>)> {
     panic::catch_unwind(move || prover(input, guest_program))
         .map_err(|e| anyhow::anyhow!("{:?}", e))?
 }
 
-fn prover(input: GuestInput, guest_program: &[u8]) -> Result<Response> {
+fn prover(input: GuestInput, guest_program: &[u8]) -> Result<(Vec<u8>, Vec<u8>)> {
     let prover = default_prover();
 
     let mut input_bytes = Vec::new();
@@ -89,17 +92,15 @@ fn prover(input: GuestInput, guest_program: &[u8]) -> Result<Response> {
     let elapsed = start.elapsed();
     println!("Proving took: {:?}", elapsed);
 
-    let journal = prove_result.receipt.journal;
-    let mut response: Response = ciborium::from_reader(journal.bytes.as_slice())?;
-
+    let journal = prove_result.receipt.journal.bytes;
     let mut proof = prove_result.receipt.inner.groth16()?.seal.clone();
 
-    log::debug!("proof: {}", hex::encode(&proof));
+    log::info!("output: {}", hex::encode(&journal));
+    log::info!("proof: {}", hex::encode(&proof));
 
     if proof.len() <= 4 {
         proof = Vec::new();
     }
-    response.proof = proof.into();
 
-    Ok(response)
+    Ok((journal, proof))
 }

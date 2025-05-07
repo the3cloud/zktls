@@ -23,5 +23,7 @@ serde = { workspace = true }
 
 memchr = { version = "2", default-features = false }
 
+log = { workspace = true }
+
 [dev-dependencies]
 serde_json = { workspace = true }

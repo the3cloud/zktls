@@ -7,7 +7,7 @@ use std::{
 
 use anyhow::Result;
 use rustls::{ClientConfig, ClientConnection, RootCertStore};
-use zktls_program_core::{GuestInputResponse, Request, ResponseTemplate};
+use zktls_program_core::{GuestInputResponse, Request};
 use zktls_recordable_tls_provider::{crypto_provider, time_provider, RecordableStream};
 
 pub fn request_tls_call(request: &Request) -> Result<GuestInputResponse> {
@@ -18,6 +18,7 @@ pub fn request_tls_call(request: &Request) -> Result<GuestInputResponse> {
 }
 
 fn _request_tls_call(request: &Request) -> Result<GuestInputResponse> {
+    log::info!("Connecting to {}", request.request_info.remote_addr);
     let stream = TcpStream::connect(&request.request_info.remote_addr)?;
     let mut recordable_stream = RecordableStream::new(stream);
 
@@ -46,11 +47,15 @@ fn _request_tls_call(request: &Request) -> Result<GuestInputResponse> {
 
     tls.write_all(request_data)?;
 
+    log::info!("Sending request complete");
+
     let mut response = Vec::new();
     tls.read_to_end(&mut response)?;
     tls.flush()?;
 
     recordable_stream.flush()?;
+
+    log::info!("Received response complete");
 
     let random = zktls_recordable_tls_provider::random();
     let time = time_provider
@@ -64,45 +69,14 @@ fn _request_tls_call(request: &Request) -> Result<GuestInputResponse> {
         stream.extend(td.to_bytes());
     }
 
-    let mut filtered_responses_begin = Vec::new();
-    let mut filtered_responses_length = Vec::new();
-    let mut filtered_responses = Vec::new();
-
-    for template in &request.response_template {
-        match template {
-            ResponseTemplate::Offset { begin, length } => {
-                let begin = *begin;
-                let length = *length;
-
-                filtered_responses_begin.push(begin);
-                filtered_responses_length.push(length);
-
-                let begin = begin as usize;
-                let length = length as usize;
-
-                let res = response
-                    .get(begin..begin + length)
-                    .ok_or(anyhow::anyhow!("Offset out of range"))?
-                    .to_vec();
-                filtered_responses.push(res.into());
-            }
-            ResponseTemplate::Prefix {
-                prefix: _,
-                length: _,
-            } => {
-                // filtered_responses.push(pattern.clone());
-            }
-        }
-    }
-
     Ok(GuestInputResponse {
         time,
         stream,
         random,
         response,
-        filtered_responses_begin,
-        filtered_responses_length,
-        filtered_responses,
+        filtered_responses_begin: vec![],
+        filtered_responses_length: vec![],
+        filtered_responses: vec![],
     })
 }
 

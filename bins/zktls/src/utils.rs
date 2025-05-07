@@ -33,7 +33,7 @@ pub async fn get_program(ty: &str) -> Result<Vec<u8>> {
     let file = build_guest_path().await?.join(format!("zktls-{}", ty));
 
     let url = format!(
-        "https://github.com/the3cloud/zkvm-programs/releases/download/v0.2.4/zktls-{}",
+        "https://github.com/the3cloud/zkvm-programs/releases/download/v0.2.5/zktls-{}",
         ty
     );
 

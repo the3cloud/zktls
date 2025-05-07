@@ -111,8 +111,8 @@ impl ProveArgs {
                     }
                 };
 
-                println!("output: {:?}", output.response);
-                println!("proof: {:?}", output.proof);
+                println!("output: {:?}", output.0);
+                println!("proof: {:?}", output.1);
             }
             Err(e) => {
                 println!("Error: {:?}", e);

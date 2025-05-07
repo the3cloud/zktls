@@ -1,7 +1,7 @@
 use std::future::Future;
 
 use anyhow::Result;
-use zktls_program_core::{GuestInput, Request, Response};
+use zktls_program_core::{GuestInput, Request};
 
 /// Build the input for the zktls program.
 pub trait InputBuilder {
@@ -14,5 +14,5 @@ pub trait ZkProver {
         &mut self,
         input: GuestInput,
         guest_program: &[u8],
-    ) -> impl Future<Output = Result<Response>> + Send;
+    ) -> impl Future<Output = Result<(Vec<u8>, Vec<u8>)>> + Send;
 }

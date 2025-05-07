@@ -5,7 +5,7 @@ use anyhow::Result;
 use sp1_prover::components::CpuProverComponents;
 use sp1_sdk::{Prover, ProverClient, SP1Stdin};
 use zktls_core::ZkProver;
-use zktls_program_core::{GuestInput, Response};
+use zktls_program_core::GuestInput;
 
 #[derive(Default)]
 pub enum ProverType {
@@ -68,7 +68,7 @@ impl ZkProver for SP1GuestProver {
         &mut self,
         input: GuestInput,
         guest_program: &[u8],
-    ) -> impl Future<Output = Result<Response>> + Send {
+    ) -> impl Future<Output = Result<(Vec<u8>, Vec<u8>)>> + Send {
         self.mode.set_env();
 
         let guest_program = guest_program.to_vec();
@@ -81,7 +81,7 @@ async fn _panic_catched_prove(
     input: GuestInput,
     guest_program: Vec<u8>,
     moongate_server: &Option<String>,
-) -> Result<Response> {
+) -> Result<(Vec<u8>, Vec<u8>)> {
     panic::catch_unwind(move || {
         if let Some(server) = moongate_server {
             let prover = ProverClient::builder()
@@ -99,7 +99,7 @@ async fn _panic_catched_prove(
     .map_err(|e| anyhow::anyhow!("{:?}", e))?
 }
 
-pub fn prove<P>(client: P, input: GuestInput, guest_program: &[u8]) -> Result<Response>
+pub fn prove<P>(client: P, input: GuestInput, guest_program: &[u8]) -> Result<(Vec<u8>, Vec<u8>)>
 where
     P: Prover<CpuProverComponents>,
 {
@@ -120,16 +120,14 @@ where
     client.verify(&prover_output, &vk)?;
 
     let output = prover_output.public_values.to_vec();
-    let mut response: Response = ciborium::from_reader(output.as_slice())?;
-
     let mut proof = prover_output.bytes();
 
-    log::debug!("proof: {}", hex::encode(&proof));
+    log::info!("output: {}", hex::encode(&output));
+    log::info!("proof: {}", hex::encode(&proof));
 
     if proof.len() <= 4 {
         proof = Vec::new();
     }
-    response.proof = proof.into();
 
-    Ok(response)
+    Ok((output, proof))
 }
